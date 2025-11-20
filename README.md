@@ -5,9 +5,9 @@ The default output is a sequence of renderable primitives,
  and optionally MIDI note events and animation hints. 
 
 ### Third party code included in this library
- - tinyxml2
- - catch2
- - tl::expected
+ - [tinyxml2](https://github.com/leethomason/tinyxml2)
+ - [catch2](https://github.com/catchorg/Catch2)
+ - [tl::expected](https://github.com/TartanLlama/expected)
 
 ### Build and run tests
 ```
