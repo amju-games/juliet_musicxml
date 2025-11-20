@@ -1,14 +1,22 @@
-juliet_musicxml
-Single-header library for parsing MusicXML.
+# juliet_musicxml
+## Single-header library for reading MusicXML
 
 The default output is a sequence of renderable primitives,
  and optionally MIDI note events and animation hints. 
 
-Third party code included in this library
-tinyxml2
-catch2
-tl::expected
+### Third party code included in this library
+ - tinyxml2
+ - catch2
+ - tl::expected
 
+### Build and run tests
+```
+cd tests
+make
+make run
+```
+
+## Brain dump
 Steps in the process
 
 Step 1 - Generate raw events
