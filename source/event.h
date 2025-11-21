@@ -7,14 +7,11 @@
 #include <vector>
 #include "fraction.h"
 #include "key_sig.h"
+#include "pitch.h"
 
 namespace juliet_musicxml
 {
 // Event types that we parse in MusicXML files.
-
-// Should these types be lightweight, just the minimum info we get from
-//  the xml?
-// Hmm then we end up with 2 representations of basic types.
 
 // Base class for event types. 
 struct event
@@ -101,30 +98,6 @@ struct note_rest_base : public event // Not for polymorphism, to share common da
   int m_num_dots = 0;
 
   // TODO Articulation etc
-};
-
-enum class pitch_error
-{
-  PITCH_TOO_LOW,
-  PITCH_TOO_HIGH,
-  PITCH_BAD_STEP,
-};
-
-// MIDI pitch (i.e. C3 (Middle C) = 60), or error code
-using expected_midi_pitch = tl::expected<int, pitch_error>;
-
-// MusicXML only
-struct pitch
-{
-  // Step/octave/alter together define the pitch of the note.
-  char m_step = '\0'; // C, D, E, etc. 
-  int m_octave = 0;    // 4, 5, etc. 
-  int m_alter = 0; // -1 for flat, etc. Seems redundant but possibly useful.
-    // TODO Also can be fractional for microtones, not supporting this.
-
-  expected_midi_pitch calc_midi_pitch() const;
-
-  std::string to_string() const; // get readable pitch name for info
 };
 
 struct note : public note_rest_base

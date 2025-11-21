@@ -1,4 +1,5 @@
-#include "event.h"
+#include <array>
+#include "pitch.h"
 
 namespace juliet_musicxml
 {
