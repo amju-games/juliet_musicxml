@@ -21,16 +21,16 @@ TEST_CASE("Parse simple xml file example", "xml_parser")
   const auto& bar = bars[0];
   REQUIRE(bar.events.size() == 3); // number of events in the bar in the example XML
   // First event should be Music XML divisions
-  REQUIRE(std::holds_alternative<juliet_musicxml::divisions>(bar.events[0])); 
-  const auto& divs = std::get<juliet_musicxml::divisions>(bar.events[0]);
-  REQUIRE(divs.m_num_divisions == 48); // depends on contents of file, not a good test
+  REQUIRE(dynamic_cast<divisions*>(bar.events[0].get())); 
+  const auto* divs = dynamic_cast<divisions*>(bar.events[0].get());
+  REQUIRE(divs->m_num_divisions == 48); // depends on contents of file, not a good test
   // Second event: remaining attributes for the bar
-  REQUIRE(std::holds_alternative<juliet_musicxml::attributes>(bar.events[1])); 
-  const auto& attrs = std::get<juliet_musicxml::attributes>(bar.events[1]);
-  REQUIRE(attrs.m_beats == 4);
-  REQUIRE(attrs.m_beat_type == 4);
-  REQUIRE(attrs.m_clefs.size() == 1);
-  REQUIRE(attrs.m_clefs.at(1).m_sign == "G");
+  REQUIRE(dynamic_cast<attributes*>(bar.events[1].get())); 
+  const auto* attrs = dynamic_cast<attributes*>(bar.events[1].get());
+  REQUIRE(attrs->m_beats == 4);
+  REQUIRE(attrs->m_beat_type == 4);
+  REQUIRE(attrs->m_clefs.size() == 1);
+  REQUIRE(attrs->m_clefs.at(1).m_sign == "G");
   // Check part 
   REQUIRE(bar.part_id == "P1"); // part name should match what's in the example XML
 }
@@ -39,7 +39,9 @@ TEST_CASE("Parse two-bar xml file example", "xml_parser")
 {
   // Test first-pass parsing of two-bar G major example.
 
-  juliet_musicxml::xml_parser p;
+  using namespace juliet_musicxml;
+
+  xml_parser p;
   auto result = p.parse_file("xml/two_bars.xml");
   REQUIRE(result);
   const auto& score = result.value();
@@ -48,35 +50,35 @@ TEST_CASE("Parse two-bar xml file example", "xml_parser")
   REQUIRE(bars.size() == 2); // expect two bars
   const auto& bar = bars[0];
   const auto& event_1 = bar.events[0];
-  const auto& divs = std::get<juliet_musicxml::divisions>(event_1);
-  REQUIRE(divs.m_num_divisions == 1);
+  const auto* divs = dynamic_cast<divisions*>(event_1.get());
+  REQUIRE(divs->m_num_divisions == 1);
   const auto& event_2 = bar.events[1];
-  const auto& attrs = std::get<juliet_musicxml::attributes>(event_2);
-  REQUIRE(attrs.m_key_sig == juliet_musicxml::key_sig::KEYSIG_1_SHARP);
+  const auto* attrs = dynamic_cast<attributes*>(event_2.get());
+  REQUIRE(attrs->m_key_sig == key_sig::KEYSIG_1_SHARP);
 }
 
 TEST_CASE("Parse attribs: 4 flats key sig", "xml_parser internals")
 {
   using namespace juliet_musicxml;
   const auto event = parse_event("<attributes><key><fifths>-4</fifths></key></attributes>");
-  const auto& attrs = std::get<attributes>(event);
-  REQUIRE(attrs.m_key_sig == key_sig::KEYSIG_4_FLAT);
+  const auto* attrs = dynamic_cast<attributes*>(event.get());
+  REQUIRE(attrs->m_key_sig == key_sig::KEYSIG_4_FLAT);
 }
 
 TEST_CASE("Parse attribs: num staves", "xml_parser internals")
 {
   using namespace juliet_musicxml;
   const auto event = parse_event("<attributes><staves>2</staves></attributes>");
-  const auto& attrs = std::get<attributes>(event);
-  REQUIRE(attrs.m_num_staves == 2);
+  const auto* attrs = dynamic_cast<attributes*>(event.get());
+  REQUIRE(attrs->m_num_staves == 2);
 }
 
 TEST_CASE("Parse attribs: divisions", "xml_parser internals")
 {
   using namespace juliet_musicxml;
   const auto event = parse_event("<attributes><divisions>7</divisions></attributes>");
-  const auto& divs = std::get<divisions>(event);
-  REQUIRE(divs.m_num_divisions == 7);
+  const auto* divs = dynamic_cast<divisions*>(event.get());
+  REQUIRE(divs->m_num_divisions == 7);
 }
 
 TEST_CASE("Parse attribs: clefs", "xml_parser internals")
@@ -86,44 +88,44 @@ TEST_CASE("Parse attribs: clefs", "xml_parser internals")
 <attributes><clef number="1"><sign>F</sign><line>4</line></clef><clef number="2"><sign>G</sign><line>2</line></clef></attributes>
   )");
 
-  const auto& attrs = std::get<attributes>(event);
-  REQUIRE(attrs.m_clefs.size() == 2);
-  REQUIRE(attrs.m_clefs.at(1).m_sign == "F");
-  REQUIRE(attrs.m_clefs.at(1).m_line == 4);
-  REQUIRE(attrs.m_clefs.at(2).m_sign == "G");
-  REQUIRE(attrs.m_clefs.at(2).m_line == 2);
+  const auto* attrs = dynamic_cast<attributes*>(event.get());
+  REQUIRE(attrs->m_clefs.size() == 2);
+  REQUIRE(attrs->m_clefs.at(1).m_sign == "F");
+  REQUIRE(attrs->m_clefs.at(1).m_line == 4);
+  REQUIRE(attrs->m_clefs.at(2).m_sign == "G");
+  REQUIRE(attrs->m_clefs.at(2).m_line == 2);
 }
 
 TEST_CASE("Parse note: staff", "xml_parser_internals")
 {
   using namespace juliet_musicxml;
   const auto event = parse_event("<note><staff>42</staff></note>");
-  const auto& n = std::get<note>(event);
-  REQUIRE(n.m_staff == 42);
+  const auto* n = dynamic_cast<note*>(event.get());
+  REQUIRE(n->m_staff == 42);
 }
 
 TEST_CASE("Parse note: stem dir", "xml_parser_internals")
 {
   using namespace juliet_musicxml;
   const auto event = parse_event("<note><stem>up</stem></note>");
-  const auto& n = std::get<note>(event);
-  REQUIRE(n.m_stem == note_stem::STEM_UP);
+  const auto* n = dynamic_cast<note*>(event.get());
+  REQUIRE(n->m_stem == note_stem::STEM_UP);
 }
 
 TEST_CASE("Parse note: voice", "xml_parser_internals")
 {
   using namespace juliet_musicxml;
   const auto event = parse_event("<note><voice>23</voice></note>");
-  const auto& n = std::get<note>(event);
-  REQUIRE(n.m_voice == 23);
+  const auto* n = dynamic_cast<note*>(event.get());
+  REQUIRE(n->m_voice == 23);
 }
 
 TEST_CASE("Parse note: alter", "xml_parser_internals")
 {
   using namespace juliet_musicxml;
   const auto event = parse_event("<note><alter>-1</alter></note>");
-  const auto& n = std::get<note>(event);
-  REQUIRE(n.m_pitch.m_alter == -1);
+  const auto* n = dynamic_cast<note*>(event.get());
+  REQUIRE(n->m_pitch.m_alter == -1);
 }
 
 TEST_CASE("Parse note, rest, rest, note", "xml_parser")
@@ -137,25 +139,25 @@ TEST_CASE("Parse note, rest, rest, note", "xml_parser")
 <note><step>D</step><duration>6</duration></note>
 )");
   
-  REQUIRE(std::holds_alternative<note>(bar.events[0])); 
-  REQUIRE(std::holds_alternative<rest>(bar.events[1])); 
-  REQUIRE(std::holds_alternative<rest>(bar.events[2]));
-  REQUIRE(std::holds_alternative<note>(bar.events[3])); // make sure flag is reset
+  REQUIRE(dynamic_cast<note*>(bar.events[0].get())); 
+  REQUIRE(dynamic_cast<rest*>(bar.events[1].get())); 
+  REQUIRE(dynamic_cast<rest*>(bar.events[2].get()));
+  REQUIRE(dynamic_cast<note*>(bar.events[3].get())); // make sure flag is reset
 
-  note n = std::get<note>(bar.events[0]);
+  note* n = dynamic_cast<note*>(bar.events[0].get());
   // Expect note and rest staves to default to 1
-  REQUIRE(n.m_staff == 1); 
+  REQUIRE(n->m_staff == 1); 
 
-  rest r = std::get<rest>(bar.events[1]);
-  REQUIRE(r.m_duration == 5);
-  REQUIRE(r.m_staff == 3);
-  REQUIRE(r.m_voice == 2);
-  REQUIRE(r.m_is_whole_bar == true);
+  rest* r = dynamic_cast<rest*>(bar.events[1].get());
+  REQUIRE(r->m_duration == 5);
+  REQUIRE(r->m_staff == 3);
+  REQUIRE(r->m_voice == 2);
+  REQUIRE(r->m_is_whole_bar == true);
 
-  r = std::get<rest>(bar.events[2]);
-  REQUIRE(r.m_duration == 7);
-  REQUIRE(r.m_staff == 1);
-  REQUIRE(r.m_voice == 1);
-  REQUIRE(r.m_is_whole_bar == false);
+  r = dynamic_cast<rest*>(bar.events[2].get());
+  REQUIRE(r->m_duration == 7);
+  REQUIRE(r->m_staff == 1);
+  REQUIRE(r->m_voice == 1);
+  REQUIRE(r->m_is_whole_bar == false);
 }
 

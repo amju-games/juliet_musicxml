@@ -13,10 +13,10 @@ class time_normalizer
 {
 public:
   // Get new event_vec for the given bar, with normalized times for the events.
-  event_vec get_timed_events(const bar&, int& current_ticks, int& current_divs, fraction& norm_time);
+  void normalize_times(const bar&, int& current_ticks, int& current_divs, fraction& norm_time);
 
   // For a whole score
-  event_vec get_timed_events(const score&);
+  void normalize_times(const score&);
 
   // Sort by time for assembling into verticals
   static void sort_events(event_vec& events);

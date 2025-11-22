@@ -16,6 +16,15 @@ namespace juliet_musicxml
 // Base class for event types. 
 struct event
 {
+  virtual ~event() = default;
+
+  // MusicXML events don't know their start time until we do the 
+  //  time normalization pass, where we count up durations, and use
+  //  backup/forward/divisions events.
+  virtual void normalize_time(int& ticks, int& divisions, fraction& time);
+
+  std::string get_description() { return m_description; }
+ 
   int m_id = 0; // every event has a unique ID, the order in which it is parsed.
   int m_bar_number = 1;
   std::string m_part; // TODO index into parts - TODO
@@ -69,6 +78,8 @@ struct attributes : public event
   // How many lines in a staff! Could be 1 for percussion.
   // I would be surprised if this changed mid-piece but who knows!
   int m_num_staff_lines = 5;
+
+  void normalize_time(int& ticks, int& divisions, fraction& time) override;
 };
 
 // Number of time units in a crotchet/quarter note.
@@ -76,6 +87,8 @@ struct attributes : public event
 struct divisions : public event   
 {
   int m_num_divisions = 0; 
+
+  void normalize_time(int& ticks, int& divisions, fraction& time) override;
 };
 
 enum class note_stem
@@ -88,7 +101,7 @@ enum class note_stem
 // Note info -- Music XML has an 'is rest' flag within notes but would be
 //  better to have a separate rest type imo
 
-struct note_rest_base : public event // Not for polymorphism, to share common data members
+struct note_rest_base : public event 
 {
   int m_duration = 0; // MusicXML only: Raw duration, in units of prevailing division value.
   std::string m_type; // e.g. "quarter": is this redundant? 
@@ -109,30 +122,36 @@ struct note : public note_rest_base
     // notes in the chord do.
 
   note_stem m_stem;
+
+  void normalize_time(int& ticks, int& divisions, fraction& time) override;
 };
 
 struct rest : public note_rest_base
 {
   int m_staff_line = 0;  // Zero means default, else position is specified
   bool m_is_whole_bar = false; 
+
+  void normalize_time(int& ticks, int& divisions, fraction& time) override;
 };
 
-// Music XML 'backup' element, to reposition the 'current time pointer'
+// Music XML <backup> element, to reposition the 'current time pointer'
 struct backup : public event 
 {
   int m_duration = 0; // The number of divisions the current time  moves backward
+
+  void normalize_time(int& ticks, int& divisions, fraction& time) override;
 };
 
-// Represents a <forward> element (moves time pointer forward).
+// MusicXML <forward> element (moves time pointer forward).
 struct forward : public event 
 {
   int m_duration = 0; // Number of divisions the pointer moves forward
+
+  void normalize_time(int& ticks, int& divisions, fraction& time) override;
 };
 
-// Variant (i.e. union) of event types 
-using event_union = std::variant<attributes, note, rest, backup, forward, divisions>;
+using p_event = std::unique_ptr<event>;
 
-// Vector of events
-using event_vec = std::vector<event_union>;
+using event_vec = std::vector<p_event>;
 }
 

@@ -20,28 +20,26 @@ score parse_score(const std::string& xml_snippet)
       << "Parsing this rubbish: " << xml_snippet << std::endl;
   }
   REQUIRE(result);
-  const auto& score = result.value();
-  return score;
+  return std::move(result.value());
 }
 
 bar parse_bar(const std::string& xml_snippet)
 {
-  const auto score = parse_score(xml_snippet);
-  REQUIRE(!score.parts.empty());
-  const auto it = score.parts.begin();
+  auto s = parse_score(xml_snippet);
+  REQUIRE(!s.parts.empty());
+  const auto it = s.parts.begin();
   REQUIRE(it->first == "THE+PART");
-  const auto& bars = it->second;
+  auto& bars = it->second;
   REQUIRE(!bars.empty());
-  return bars[0];
+  return std::move(bars[0]);
 }
 
 // Parse a single XML event, e.g. a note
-event_union parse_event(const std::string& xml_snippet)
+p_event parse_event(const std::string& xml_snippet)
 {
-  const auto bar_1 = parse_bar(xml_snippet);
-  REQUIRE(!bar_1.events.empty());
-  const auto& event_1 = bar_1.events[0];
-  return event_1;
+  auto b = parse_bar(xml_snippet);
+  REQUIRE(!b.events.empty());
+  return std::move(b.events[0]);
 }
 }
 

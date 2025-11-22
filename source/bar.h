@@ -11,7 +11,6 @@ struct bar
   int bar_number = 1; // There can be a bar #1 in each part;
     // I.e. part_id + bar_number is the unique ID of this bar.
 
-  // Vector of the events read from input (MusicXML).
   event_vec events; 
 };
 

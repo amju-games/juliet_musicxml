@@ -4,6 +4,7 @@
 
 namespace juliet_musicxml
 {
+/*
 void process_event(
     const rest& cr,
     int& current_ticks, 
@@ -21,7 +22,7 @@ void process_event(
     eventDescription = ss.str();
              
     // Rests always advance the time pointer.
-    current_ticks += event_duration.num;  // so... is this used??
+    current_ticks += r.m_duration;
     norm_time += event_duration;
 
     r.m_normalized_start_time = norm_time;
@@ -93,15 +94,15 @@ void process_event(
 {
     backup b(cb);
 
-    current_ticks -= b.m_duration;
-    norm_time -= fraction(b.m_duration, current_divs);
+    current_ticks -= b->m_duration;
+    norm_time -= fraction(b->m_duration, current_divs);
 
     // Add a marker event for clarity
     std::stringstream ss;
-    ss << "BACKUP " << b.m_duration << " units. Pointer at: " << current_ticks;
+    ss << "BACKUP " << b->m_duration << " units. Pointer at: " << current_ticks;
 
-    b.m_normalized_start_time = norm_time;
-    b.m_description = ss.str();
+    b->m_normalized_start_time = norm_time;
+    b->m_description = ss.str();
     
     partEvents.push_back(b);
 }
@@ -159,17 +160,17 @@ void process_event(
     attributes a(ca);
 
     std::stringstream ss;
-    ss << "Attributes: Time " << a.m_beats << "/" << a.m_beat_type 
-       << " Key: " << to_string(a.m_key_sig)
-       << " Staves: " << a.m_num_staves
+    ss << "Attributes: Time " << a->m_beats << "/" << a->m_beat_type 
+       << " Key: " << to_string(a->m_key_sig)
+       << " Staves: " << a->m_num_staves
        << " Clefs: ";
-    for (const auto& [staff, clef] : a.m_clefs)
+    for (const auto& [staff, clef] : a->m_clefs)
     {
       ss << "(" << staff << ": " << clef.m_sign << " line " << clef.m_line << ") ";
     }
 
-    a.m_normalized_start_time = norm_time;
-    a.m_description = ss.str();
+    a->m_normalized_start_time = norm_time;
+    a->m_description = ss.str();
 
     partEvents.push_back(a);
 }
@@ -189,7 +190,18 @@ void process_measure_event(
       process_event(ev, current_ticks, current_divs, norm_time, result_events);
     }, evu);
 }
+*/
 
+void time_normalizer::normalize_times(
+  const bar& b, int& current_ticks, int& current_divs, fraction& norm_time)
+{
+  for (const auto& e: b.events) 
+  {
+    e->normalize_time(current_ticks, current_divs, norm_time);
+  } 
+}
+
+/*
 event_vec time_normalizer::get_timed_events(
   const bar& rb, int& current_ticks, int& current_divs, fraction& norm_time)
 {
@@ -204,8 +216,9 @@ event_vec time_normalizer::get_timed_events(
 
   return result;
 }
+*/
 
-event_vec time_normalizer::get_timed_events(const score& sc)
+void time_normalizer::normalize_times(const score& sc)
 {
   // TODO ***
   // I don't think we should rely on the accumulated time to be correct 
@@ -226,11 +239,14 @@ event_vec time_normalizer::get_timed_events(const score& sc)
     int current_divs = 1; // and reset divisions
     fraction norm_time; // and normalized time
 
-    for (auto& rb : bars)
+    for (auto& b : bars)
     {
       // Iterate over all events, tracking accumulated time and accounting
       //  for forward and backup events.
-      event_vec bar_events = get_timed_events(rb, current_ticks, current_divs, norm_time);
+//      event_vec bar_events = get_timed_events(b, current_ticks, current_divs, norm_time);
+
+      // Using unique_ptr throughout: fix times in place
+      normalize_times(b, current_ticks, current_divs, norm_time);
 
       // Add unique ID for each event - what's the best way to do this?
       //////for (auto& ev : bar_events) { ev.set_id(unique_id++); }
@@ -238,48 +254,41 @@ event_vec time_normalizer::get_timed_events(const score& sc)
       // *** TODO ***
       // I don't know if we want to put all the events into one big vector.
       // I think we will end up sifting the events out into bar and part buckets!
-      result.insert(result.end(), bar_events.begin(), bar_events.end());
+      ////result.insert(result.end(), bar_events.begin(), bar_events.end());
     }
   }
   sort_events(result); // TODO We can just sort events within the events for one bar/part - no need to sort by bar and part then; just normalized_start_time and voice etc. No?? Oh, we do want all events happening at the same start time, across parts. Hmmm...
  
-  return result;
+  //return result;
 }
 
 void time_normalizer::sort_events(event_vec& events)
 {
-  // Get all events into order:
-  // 1. bar
-  // 1. NORMALIZED start time  
-  // 2. part
-  // 3. voice
-  // 3. staff
-  // 4. order in which the events appear in the source  - TODO
   std::sort(events.begin(), events.end());
 }
 
-bool operator<(const event& a, const event& b) 
+bool operator<(const p_event& a, const p_event& b) 
 {
-  if (a.m_bar_number != b.m_bar_number)
+  if (a->m_bar_number != b->m_bar_number)
   {
-    return a.m_bar_number < b.m_bar_number;
+    return a->m_bar_number < b->m_bar_number;
   }
-  if (a.m_normalized_start_time != b.m_normalized_start_time)
+  if (a->m_normalized_start_time != b->m_normalized_start_time)
   {
-    return a.m_normalized_start_time < b.m_normalized_start_time;
+    return a->m_normalized_start_time < b->m_normalized_start_time;
   }
-  if (a.m_part != b.m_part)
+  if (a->m_part != b->m_part)
   {
-    return a.m_part < b.m_part; 
+    return a->m_part < b->m_part; 
   }
-//  if (a.m_voice != b.m_voice)
+//  if (a->m_voice != b->m_voice)
 //  {
-//    return a.m_voice < b.m_voice; 
+//    return a->m_voice < b->m_voice; 
 //  }
-  if (a.m_staff != b.m_staff)
+  if (a->m_staff != b->m_staff)
   {
-    return a.m_staff < b.m_staff; 
+    return a->m_staff < b->m_staff; 
   }
-  return a.m_id < b.m_id;
+  return a->m_id < b->m_id;
 }
 }

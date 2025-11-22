@@ -128,10 +128,10 @@ public:
     {
         if (m_divisions.m_num_divisions != 0)
         { 
-          data.events.emplace_back(m_divisions);
+          data.events.emplace_back(std::make_unique<divisions>(m_divisions));
         }
         // TODO Split other attributes similarly to divisions
-        data.events.emplace_back(m_attribs);
+        data.events.emplace_back(std::make_unique<attributes>(m_attribs));
     }    
 };
 
@@ -202,11 +202,11 @@ public:
             m_rest.m_voice = m_note.m_voice;
             m_rest.m_num_dots = m_note.m_num_dots;
             
-            data.events.emplace_back(m_rest);
+            data.events.emplace_back(std::make_unique<rest>(m_rest));
         }
         else
         {
-            data.events.emplace_back(m_note);
+            data.events.emplace_back(std::make_unique<note>(m_note));
         }
     }
 };
@@ -227,7 +227,7 @@ public:
     }
 
     void handleExit(const XMLElement& element, bar& data) override {
-        data.events.emplace_back(m_backup);
+        data.events.emplace_back(std::make_unique<backup>(m_backup));
     }
 };
 
@@ -248,7 +248,7 @@ public:
 
     void handleExit(const XMLElement& element, bar& data) override 
     {
-        data.events.emplace_back(m_forward);
+        data.events.emplace_back(std::make_unique<forward>(m_forward));
     }
 };
 
@@ -326,7 +326,7 @@ bar parse_bar(XMLNode* measureNode)
     if (measureNode) {
         measureNode->Accept(&visitor);
     }
-    return visitor.measureData;
+    return std::move(visitor.measureData);
 }   
 
 
@@ -350,19 +350,20 @@ expected_score parse_xml_doc(XMLDocument& doc)
         
         // Iterate over all bars in the part.
         int bar_number = 1;
-        bar_vec bars;
+//        bar_vec bars;
         for (XMLNode* measureNode = partElem->FirstChildElement("measure");
              measureNode != nullptr;
              measureNode = measureNode->NextSiblingElement("measure"))
         {
-            bar rb = parse_bar(measureNode);
-            rb.part_id = partId; // add the part ID to the bar 
-            rb.bar_number = bar_number++;
-            bars.emplace_back(rb);
+            auto& part = scoreData.parts[partId];
+            part.emplace_back(parse_bar(measureNode));
+            bar& b = part.back();
+            b.part_id = partId; // add the part ID to the bar 
+            b.bar_number = bar_number++;
         }
-        scoreData.parts[partId] = bars;
+//        scoreData.parts[partId] = std::move(bars);
     }
-    return scoreData;
+    return std::move(scoreData);
 }
 } // namespace internal
 
