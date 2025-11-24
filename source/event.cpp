@@ -29,22 +29,24 @@ void note::normalize_time(int& ticks, int& divs, fraction& norm_time)
   fraction start_time;
 
   // Set normalized start time - different if this is a chord note.
-  if (m_is_chord) // TODO //  && !partEvents.empty()) 
+  if (m_is_chord) 
   {   
-    // Chord notes inherit the start time of the previous event.
-    // We use the start time of the last added event. 
-//    assert(!partEvents.empty());
-//    const auto& e = partEvents.back();
-//    if (std::holds_alternative<note>(e))
-//    {   
-//      start_time = std::get<note>(e).m_normalized_start_time;
-//    }   
+    // Chord notes have the start time of the previous note. Given that 
+    //  every note in a chord has the same duration, that's the same
+    //  as subtracting this note's duration from the cumulative 
+    //  normalized time.  ...riiight?
+    start_time = norm_time - event_duration;
   }   
   else 
   {   
     // Non-chord notes start at the current time pointer.
     start_time = norm_time;
-  }    
+  
+    // Only non-chord notes advance the time.
+    ticks += m_duration;
+    norm_time += event_duration;
+  }
+
   std::stringstream ss; 
   ss << "Note: " << m_pitch.to_string() 
      << (m_is_chord ? " (CH)" : "     ")  
@@ -54,14 +56,6 @@ void note::normalize_time(int& ticks, int& divs, fraction& norm_time)
      << " Voice: " << m_voice
      << " Stem: " << (m_stem == note_stem::STEM_UP ? "U" : (m_stem == note_stem::STEM_DOWN ? "D" : "-"));    
   m_description = ss.str();
-
-  // Only non-chord notes advance the time.
-  if (!m_is_chord) 
-  {
-    ticks += m_duration;
-    norm_time += event_duration;
-  }
-
   m_normalized_start_time = start_time;
   m_normalized_duration = event_duration;
 }
@@ -82,20 +76,20 @@ void rest::normalize_time(int& ticks, int& divs, fraction& time)
 
 void backup::normalize_time(int& ticks, int& divs, fraction& norm_time)
 {
+  m_normalized_start_time = norm_time; // keep the normalized start time at the original point, just for info.
   ticks -= m_duration;
   norm_time -= fraction(m_duration, divs);
+  // ...not at the new time. Riight?
 
   std::stringstream ss;
-  ss << "BACKUP " << m_duration << " units. Pointer at: " << ticks;
-
-  m_normalized_start_time = norm_time;
+  ss << "BACKUP " << m_normalized_start_time << ", " << m_duration << " units, from " << ticks + m_duration << " to " << ticks;
   m_description = ss.str();
 }
 
 void forward::normalize_time(int& ticks, int& divs, fraction& norm_time)
 {
   std::stringstream ss;
-  ss << "FORWARD " << m_duration << " units. Pointer from " << ticks;
+  ss << "FORWARD " << m_normalized_start_time << ", " << m_duration << " units, from " << ticks << " to " << ticks + m_duration;
   m_description = ss.str();
 
   m_normalized_start_time = norm_time;
@@ -107,7 +101,7 @@ void forward::normalize_time(int& ticks, int& divs, fraction& norm_time)
 void divisions::normalize_time(int& ticks, int& divs, fraction& norm_time)
 {
   std::stringstream ss;
-  ss << " Divisions: " << m_num_divisions;
+  ss << "Divisions: " << m_num_divisions;
   m_description = ss.str();
   m_normalized_start_time = norm_time;
   divs = m_num_divisions;

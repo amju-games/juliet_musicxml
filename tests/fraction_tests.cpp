@@ -31,6 +31,20 @@ TEST_CASE("Fraction operator<", "fraction")
   REQUIRE_FALSE(fraction(2, 1) < fraction(2, 2)); // 2 < 1?
 }
 
+TEST_CASE("Fraction operator+", "fraction")
+{
+  using namespace juliet_musicxml;
+  REQUIRE(fraction(1, 5) + fraction(1, 3) == fraction(8, 15));
+  REQUIRE(fraction(1, 5) + fraction(2, 5) == fraction(3, 5));
+}
+
+TEST_CASE("Fraction operator-", "fraction")
+{
+  using namespace juliet_musicxml;
+  REQUIRE(fraction(1, 3) - fraction(2, 7) == fraction(1, 21));
+  REQUIRE(fraction(3, 7) - fraction(2, 5) == fraction(1, 35));
+}
+
 TEST_CASE("Fraction operator+=", "fraction")
 {
   using namespace juliet_musicxml;

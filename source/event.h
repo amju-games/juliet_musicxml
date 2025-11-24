@@ -24,6 +24,8 @@ struct event
   virtual void normalize_time(int& ticks, int& divisions, fraction& time);
 
   std::string get_description() { return m_description; }
+  
+  void set_id(int id) { m_id = id; }
  
   int m_id = 0; // every event has a unique ID, the order in which it is parsed.
   int m_bar_number = 1;

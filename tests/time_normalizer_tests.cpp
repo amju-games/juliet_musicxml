@@ -24,21 +24,33 @@ void print_bars(const bar_vec& bars)
   }
 }
 
-bool parse_and_print(const std::string& filename)
+void print_score(const score& s)
 {
-  xml_parser parser;
-  const auto& es = parser.parse_file(filename);
-  REQUIRE(es);
-  const score& s = es.value();
-
-  time_normalizer v;
-  v.normalize_times(s);
- 
   for (const auto& [part, bars] : s.parts)
   { 
     std::cout << "Part: " << part << std::endl;
     print_bars(bars);
   }
+}
+
+bool parse_and_print(const std::string& filename)
+{
+  xml_parser parser;
+  auto es = parser.parse_file(filename);
+  REQUIRE(es);
+  score& s = es.value();
+
+  // TODO Description should be made on the fly in each event type, 
+  //  not during time normalization
+//  std::cout << "BEFORE NORMALIZING" << std::endl; 
+//  print_score(s);
+
+  time_normalizer v;
+  v.normalize_times(s);
+
+  std::cout << "AFTER NORMALIZING" << std::endl; 
+  print_score(s);
+
   return true;
 }
 
@@ -98,7 +110,8 @@ TEST_CASE("Get timed events in one bar, check times", "time_normalizer")
 }
 
 // Convenience function
-std::unique_ptr<note> make_note(char step, int octave, int alter, int duration_ticks, std::string_view type)
+auto make_note(
+  char step, int octave, int alter, int duration_ticks, std::string_view type, bool is_chord = false)
 {
   note n;
   n.m_pitch.m_step = step;
@@ -106,17 +119,32 @@ std::unique_ptr<note> make_note(char step, int octave, int alter, int duration_t
   n.m_pitch.m_alter = alter;
   n.m_type = type;
   n.m_duration = duration_ticks;
+  n.m_is_chord = is_chord;
   return std::make_unique<note>(n);
 }
 
-std::unique_ptr<divisions> make_divisions(int num_divisions)
+auto make_divisions(int num_divisions)
 {
   divisions d;
   d.m_num_divisions = num_divisions;
   return std::make_unique<divisions>(d);
 }
 
-TEST_CASE("Normalize start times in timed_events", "time_normalizer")
+auto make_backup(int ticks)
+{
+  backup b;
+  b.m_duration = ticks;
+  return std::make_unique<backup>(b);
+}
+
+auto make_forward(int ticks)
+{
+  forward f;
+  f.m_duration = ticks;
+  return std::make_unique<forward>(f);
+}
+
+TEST_CASE("Normalize start times in events", "time_normalizer")
 {
   // Durations and accumulated start times depend on note durations
   //  and the prevailing number of divisions per crotchet.
@@ -139,7 +167,7 @@ TEST_CASE("Normalize start times in timed_events", "time_normalizer")
   fraction norm_time;
   tn.normalize_times(b, ticks, divs, norm_time);
 
-  print_events(b.events); // TODO TEMP TEST
+  //print_events(b.events); // TODO TEMP TEST
 
   REQUIRE(b.events[0]->m_normalized_start_time == fraction(0, 1)); // divs 
   REQUIRE(b.events[1]->m_normalized_start_time == fraction(0, 1)); // 'C'
@@ -150,5 +178,41 @@ TEST_CASE("Normalize start times in timed_events", "time_normalizer")
 
   REQUIRE(norm_time == fraction(8, 1));
   REQUIRE(divs == 5);
+}
+
+TEST_CASE("Chord notes", "time_normalizer")
+{
+  // Test that all notes in a chord have the same normalized start time.
+
+  bar b;
+  b.events.emplace_back(make_note('B', 3, 0,  8, "quarter")); // single note
+  b.events.emplace_back(make_note('C', 3, 0,  4, "quarter"));  // 3-note chord
+  b.events.emplace_back(make_note('E', 3, 0,  4, "quarter", true));
+  b.events.emplace_back(make_note('G', 3, 0,  4, "quarter", true));
+  b.events.emplace_back(make_backup(7));
+  b.events.emplace_back(make_note('D', 3, 0,  6, "quarter"));  // 3-note chord
+  b.events.emplace_back(make_note('F', 3, 1,  6, "quarter", true));
+  b.events.emplace_back(make_note('A', 3, 0,  6, "quarter", true));
+  b.events.emplace_back(make_forward(20));
+  b.events.emplace_back(make_note('E', 3, 0,  5, "quarter"));  // 3-note chord
+  b.events.emplace_back(make_note('G', 3, 1,  5, "quarter", true));
+  b.events.emplace_back(make_note('B', 4, 0,  5, "quarter", true));
+  
+  time_normalizer tn;
+  int ticks = 0;
+  int divs = 3;
+  fraction norm_time;
+  tn.normalize_times(b, ticks, divs, norm_time);
+
+  REQUIRE(b.events[0]->m_normalized_start_time == fraction(0, 3)); // B
+  REQUIRE(b.events[1]->m_normalized_start_time == fraction(8, 3)); // C
+  REQUIRE(b.events[2]->m_normalized_start_time == fraction(8, 3)); // E - same start time as C
+  REQUIRE(b.events[3]->m_normalized_start_time == fraction(8, 3)); // G - ditto
+  REQUIRE(b.events[5]->m_normalized_start_time == fraction(5, 3)); // D
+  REQUIRE(b.events[6]->m_normalized_start_time == fraction(5, 3)); // F#
+  REQUIRE(b.events[7]->m_normalized_start_time == fraction(5, 3)); // A
+  REQUIRE(b.events[9]->m_normalized_start_time == fraction(31, 3)); // E 
+  REQUIRE(b.events[10]->m_normalized_start_time == fraction(31, 3)); // G#
+  REQUIRE(b.events[11]->m_normalized_start_time == fraction(31, 3)); // B
 }
 

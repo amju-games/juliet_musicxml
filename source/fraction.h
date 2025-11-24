@@ -23,6 +23,20 @@ struct fraction
   friend std::ostream& operator<<(std::ostream&, const fraction& f);
 };
 
+inline fraction operator+(const fraction& f1, const fraction& f2)
+{
+  fraction res(f1);
+  res += f2;
+  return res;
+}
+
+inline fraction operator-(const fraction& f1, const fraction& f2)
+{
+  fraction res(f1);
+  res -= f2;
+  return res;
+}
+
 inline bool operator<(const fraction& f1, const fraction& f2)
 {
   // f1.num / f1.denom < f2.num / f2.denom === f1.num*f2.denom < f2.num*f2.denom

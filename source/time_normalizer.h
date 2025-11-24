@@ -12,13 +12,13 @@ struct score;
 class time_normalizer
 {
 public:
-  // Get new event_vec for the given bar, with normalized times for the events.
-  void normalize_times(const bar&, int& current_ticks, int& current_divs, fraction& norm_time);
+  // Normalize times in events in bar
+  void normalize_times(bar&, int& current_ticks, int& current_divs, fraction& norm_time);
 
-  // For a whole score
-  void normalize_times(const score&);
+  // Normalize times in each bar in score
+  void normalize_times(score&);
 
-  // Sort by time for assembling into verticals
+  // Sort events for assembling into verticals
   static void sort_events(event_vec& events);
 };
 }
