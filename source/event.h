@@ -23,7 +23,8 @@ struct event
   //  backup/forward/divisions events.
   virtual void normalize_time(int& ticks, int& divisions, fraction& time);
 
-  std::string get_description() { return m_description; }
+  // Create description on the fly, because we add more data with each pass.
+  virtual std::string get_description() const { return {}; }
   
   void set_id(int id) { m_id = id; }
  
@@ -32,7 +33,6 @@ struct event
   std::string m_part; // TODO index into parts - TODO
   fraction m_normalized_start_time;
   fraction m_normalized_duration; 
-  std::string m_description;  // ??
   int m_staff = 0;  // ?
 };
 
@@ -82,6 +82,8 @@ struct attributes : public event
   int m_num_staff_lines = 5;
 
   void normalize_time(int& ticks, int& divisions, fraction& time) override;
+
+  std::string get_description() const override;
 };
 
 // Number of time units in a crotchet/quarter note.
@@ -91,6 +93,7 @@ struct divisions : public event
   int m_num_divisions = 0; 
 
   void normalize_time(int& ticks, int& divisions, fraction& time) override;
+  std::string get_description() const override;
 };
 
 enum class note_stem
@@ -126,6 +129,7 @@ struct note : public note_rest_base
   note_stem m_stem;
 
   void normalize_time(int& ticks, int& divisions, fraction& time) override;
+  std::string get_description() const override;
 };
 
 struct rest : public note_rest_base
@@ -134,6 +138,7 @@ struct rest : public note_rest_base
   bool m_is_whole_bar = false; 
 
   void normalize_time(int& ticks, int& divisions, fraction& time) override;
+  std::string get_description() const override;
 };
 
 // Music XML <backup> element, to reposition the 'current time pointer'
@@ -142,6 +147,7 @@ struct backup : public event
   int m_duration = 0; // The number of divisions the current time  moves backward
 
   void normalize_time(int& ticks, int& divisions, fraction& time) override;
+  std::string get_description() const override;
 };
 
 // MusicXML <forward> element (moves time pointer forward).
@@ -150,6 +156,7 @@ struct forward : public event
   int m_duration = 0; // Number of divisions the pointer moves forward
 
   void normalize_time(int& ticks, int& divisions, fraction& time) override;
+  std::string get_description() const override;
 };
 
 using p_event = std::unique_ptr<event>;

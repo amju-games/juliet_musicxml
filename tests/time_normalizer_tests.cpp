@@ -42,8 +42,8 @@ bool parse_and_print(const std::string& filename)
 
   // TODO Description should be made on the fly in each event type, 
   //  not during time normalization
-//  std::cout << "BEFORE NORMALIZING" << std::endl; 
-//  print_score(s);
+  std::cout << "BEFORE NORMALIZING" << std::endl; 
+  print_score(s);
 
   time_normalizer v;
   v.normalize_times(s);
