@@ -12,12 +12,19 @@ struct render_info
 
 // Vertical: info for rendering plus vec of all renderable events that
 //  are vertically aligned
-struct vertical
+// ** vertical is a composite; is this a good design idea? **
+struct vertical : public event
 {
+  // Construct vertical by moving a range of events
+  vertical(event_vec::iterator first, event_vec::iterator last)
+  {
+    m_events.insert(m_events.begin(), std::make_move_iterator(first), std::make_move_iterator(last));
+  }
+
+  std::string get_description() const override;
+
   render_info m_render_info;
   event_vec m_events;
 };
-
-using vertical_vec = std::vector<vertical>;
 }
 
