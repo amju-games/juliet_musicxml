@@ -72,16 +72,20 @@ void rest::normalize_time(int& ticks, int& divs, fraction& time)
   const fraction event_duration(m_duration, divs);
   // Rests always advance the time pointer.
   ticks += m_duration;
-  time += event_duration;
 
   m_normalized_start_time = time;
+  time += event_duration;
+
   m_normalized_duration = event_duration;
 }
 
 std::string rest::get_description() const
 {
   std::stringstream ss;
-  ss << "Rest: " << m_type << "\tDur: " << m_normalized_duration; 
+  ss << "Rest: " << m_type << "\tDur: " << m_normalized_duration
+     << " Start at: " << m_normalized_start_time 
+     << " Staff: " << m_staff
+     << " Voice: " << m_voice;
   return ss.str();
 }
 
