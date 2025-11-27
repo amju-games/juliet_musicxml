@@ -8,22 +8,22 @@
 
 using namespace juliet_musicxml;
 
+/*
 TEST_CASE("Show events in chopin example", "time_normalizer")
 {
   REQUIRE(parse_and_print("xml/chopin.xml"));
 }
 
-/*
 TEST_CASE("Show events in two bar example", "time_normalizer")
 {
   REQUIRE(parse_and_print("xml/two_bars.xml"));
 }
+*/
 
 TEST_CASE("Show events in Beethoven example", "time_normalizer")
 {
   REQUIRE(parse_and_print("xml/beethoven.xml"));
 }
-*/
 
 TEST_CASE("Get timed events in one bar, check times", "time_normalizer")
 {
@@ -63,7 +63,7 @@ TEST_CASE("Get timed events in one bar, check times", "time_normalizer")
   REQUIRE(note2.m_normalized_duration == fraction(8, 1));
 }
 
-// Convenience function
+// Convenience functions
 auto make_note(
   char step, int octave, int alter, int duration_ticks, std::string_view type, bool is_chord = false)
 {
@@ -75,6 +75,13 @@ auto make_note(
   n.m_duration = duration_ticks;
   n.m_is_chord = is_chord;
   return std::make_unique<note>(n);
+}
+
+auto make_rest(int duration_ticks, std::string_view type)
+{
+  rest r;
+  r.m_duration = duration_ticks;
+  return std::make_unique<rest>(r);
 }
 
 auto make_divisions(int num_divisions)
@@ -134,7 +141,33 @@ TEST_CASE("Normalize start times in events", "time_normalizer")
   REQUIRE(divs == 5);
 }
 
-TEST_CASE("Chord notes", "time_normalizer")
+TEST_CASE("Rest start times", "time_normalizer")
+{
+  bar b;
+  b.events.emplace_back(make_note('a', 3, 0,  8, "quarter")); 
+  b.events.emplace_back(make_rest(4, "eighth"));
+  b.events.emplace_back(make_backup(7));
+  b.events.emplace_back(make_note('b', 3, 0,  16, "half")); 
+  b.events.emplace_back(make_rest(2, "16th"));
+  b.events.emplace_back(make_note('c', 3, 0,  4, "eighth")); 
+  b.events.emplace_back(make_forward(3));
+  b.events.emplace_back(make_rest(8, "quarter"));
+ 
+  time_normalizer tn;
+  int ticks = 0;
+  int divs = 8;
+  fraction norm_time;
+  tn.normalize_times(b, ticks, divs, norm_time);
+
+  REQUIRE(b.events[0]->m_normalized_start_time == fraction(0, 8)); 
+  REQUIRE(b.events[1]->m_normalized_start_time == fraction(8, 8)); 
+  REQUIRE(b.events[3]->m_normalized_start_time == fraction(5, 8)); 
+  REQUIRE(b.events[4]->m_normalized_start_time == fraction(21, 8)); 
+  REQUIRE(b.events[5]->m_normalized_start_time == fraction(23, 8)); 
+  REQUIRE(b.events[7]->m_normalized_start_time == fraction(30, 8)); 
+}
+
+TEST_CASE("Chords - note start times ", "time_normalizer")
 {
   // Test that all notes in a chord have the same normalized start time.
 
