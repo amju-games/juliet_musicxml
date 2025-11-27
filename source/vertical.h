@@ -16,10 +16,7 @@ struct render_info
 struct vertical : public event
 {
   // Construct vertical by moving a range of events
-  vertical(event_vec::iterator first, event_vec::iterator last)
-  {
-    m_events.insert(m_events.begin(), std::make_move_iterator(first), std::make_move_iterator(last));
-  }
+  vertical(event_vec::iterator first, event_vec::iterator last);
 
   std::string get_description() const override;
 
