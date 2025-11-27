@@ -102,11 +102,19 @@ struct divisions : public non_renderable_event
   std::string get_description() const override;
 };
 
-enum class note_stem
+struct stem
 {
-  STEM_NONE,
-  STEM_UP,
-  STEM_DOWN
+  enum class direction
+  {
+    STEM_NONE, // for semibreves, for example
+    STEM_UP,
+    STEM_DOWN
+  };
+
+  std::string to_string() const;
+
+  direction m_direction;
+  float m_length = 1.0f; // stem length for a standard crotchet
 };
 
 // Note info -- Music XML has an 'is rest' flag within notes but would be
@@ -124,6 +132,14 @@ struct note_rest_base : public event
   // TODO Articulation etc
 };
 
+struct ledger_lines
+{
+  enum class direction { ABOVE, BELOW };
+  int m_num_ledger_lines = 0;
+  float m_width = 1.0f; // whatever that means - wider for semibreves, etc.
+  direction m_direction;
+}; 
+
 struct note : public note_rest_base
 {
   pitch m_pitch;
@@ -132,7 +148,9 @@ struct note : public note_rest_base
     // The first note in the chord does not get this flag set, but subsequent
     // notes in the chord do.
 
-  note_stem m_stem;
+  stem m_stem;
+
+  ledger_lines m_ledger_lines;
 
   void normalize_time(int& ticks, int& divisions, fraction& time) override;
   std::string get_description() const override;

@@ -48,11 +48,11 @@ bool get_named_value(
   return false;
 }
 
-note_stem stem_lookup(const std::string str)
+stem::direction stem_lookup(const std::string str)
 {
-  if (str == "up") return note_stem::STEM_UP;
-  if (str == "down") return note_stem::STEM_DOWN;
-  return note_stem::STEM_NONE;
+  if (str == "up") return stem::direction::STEM_UP;
+  if (str == "down") return stem::direction::STEM_DOWN;
+  return stem::direction::STEM_NONE;
 }
 }
 
@@ -186,7 +186,7 @@ public:
         else if (get_named_value(m_child_name, "duration", textValue, m_note.m_duration)) {}
         else if (get_named_value(m_child_name, "staff", textValue, m_note.m_staff)) {}
         else if (m_child_name == "type") { m_note.m_type = textValue; }
-        else if (m_child_name == "stem") { m_note.m_stem = stem_lookup(textValue); }
+        else if (m_child_name == "stem") { m_note.m_stem.m_direction = stem_lookup(textValue); }
         else if (get_named_value(m_child_name, "voice", textValue, m_note.m_voice)) {}
     }
 

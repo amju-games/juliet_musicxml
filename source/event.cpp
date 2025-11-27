@@ -58,12 +58,13 @@ std::string note::get_description() const
 {
   std::stringstream ss; 
   ss << "Note: " << m_pitch.to_string() 
-     << (m_is_chord ? " (CH)" : "     ")  
+     << (m_is_chord ? " ch" : "   ") 
      << "\tDuration: " << m_normalized_duration 
+     << " Type: " << m_type
      << " Start at: " << m_normalized_start_time 
      << " Staff: " << m_staff
      << " Voice: " << m_voice
-     << " Stem: " << (m_stem == note_stem::STEM_UP ? "U" : (m_stem == note_stem::STEM_DOWN ? "D" : "-"));    
+     << " Stem: " << m_stem.to_string();
   return ss.str();
 }
 
@@ -131,6 +132,13 @@ std::string divisions::get_description() const
   std::stringstream ss;
   ss << "Divisions: " << m_normalized_start_time << " new divisions value: " << m_num_divisions;
   return ss.str();
+}
+
+std::string stem::to_string() const
+{
+  return m_direction == direction::STEM_UP ? "U" : 
+    (m_direction == direction::STEM_DOWN ? "D" : 
+    "-");
 }
 }
 

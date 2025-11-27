@@ -109,7 +109,7 @@ TEST_CASE("Parse note: stem dir", "xml_parser_internals")
   using namespace juliet_musicxml;
   const auto event = parse_event("<note><stem>up</stem></note>");
   const auto* n = dynamic_cast<note*>(event.get());
-  REQUIRE(n->m_stem == note_stem::STEM_UP);
+  REQUIRE(n->m_stem.m_direction == stem::direction::STEM_UP);
 }
 
 TEST_CASE("Parse note: voice", "xml_parser_internals")
