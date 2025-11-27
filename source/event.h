@@ -34,6 +34,12 @@ struct event
   fraction m_normalized_start_time;
   fraction m_normalized_duration; 
   int m_staff = 0;  // ?
+  bool m_is_renderable = true;
+};
+
+struct non_renderable_event : public event
+{
+  non_renderable_event() { m_is_renderable = false; }
 };
 
 /*
@@ -88,7 +94,7 @@ struct attributes : public event
 
 // Number of time units in a crotchet/quarter note.
 // Can be different across parts and can change within a part!
-struct divisions : public event   
+struct divisions : public non_renderable_event   
 {
   int m_num_divisions = 0; 
 
@@ -142,7 +148,7 @@ struct rest : public note_rest_base
 };
 
 // Music XML <backup> element, to reposition the 'current time pointer'
-struct backup : public event 
+struct backup : public non_renderable_event 
 {
   int m_duration = 0; // The number of divisions the current time  moves backward
 
@@ -151,7 +157,7 @@ struct backup : public event
 };
 
 // MusicXML <forward> element (moves time pointer forward).
-struct forward : public event 
+struct forward : public non_renderable_event 
 {
   int m_duration = 0; // Number of divisions the pointer moves forward
 

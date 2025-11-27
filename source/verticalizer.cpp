@@ -1,14 +1,40 @@
 #include <sstream>
+#include "score.h"
 #include "verticalizer.h"
 
 namespace juliet_musicxml
 {
+namespace internal
+{
+void remove_non_renderable_events(event_vec& events)
+{
+  events.erase(
+    std::remove_if(events.begin(), events.end(), 
+      [](const p_event& pe) { return !pe->m_is_renderable; }), 
+    events.end());
+}
+}
+
+void verticalizer::group_verticals(score& sc)
+{
+  // Group verticals in each bar
+  for (auto& [part_id, bars] : sc.parts)
+  {
+    for (auto& b : bars)
+    {
+      group_verticals(b.events);
+    }
+  }
+}
+
 void verticalizer::group_verticals(event_vec& events)
 {
-  // TODO Assume event_vec is sorted -- or don't, and sort it here?
+  // Assume event_vec is sorted
 
-  // Find range of elements with same start time. Move them into a vertical and replace the range with this vertical. So now vertical is a Composite.
+  // Find range of elements with same start time. Move them into a vertical 
+  //  and replace the range with this vertical. So vertical is a Composite.
 
+  internal::remove_non_renderable_events(events);
 
   auto first = events.begin();
   auto last = first; 
