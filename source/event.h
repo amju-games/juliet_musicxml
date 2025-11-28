@@ -3,7 +3,6 @@
 #include "expected.hpp" // TODO <expected>
 #include <map>
 #include <string>
-#include <variant>
 #include <vector>
 #include "fraction.h"
 #include "key_sig.h"
@@ -35,11 +34,18 @@ struct event
   fraction m_normalized_duration; 
   int m_staff = 0;  // ?
   bool m_is_renderable = true;
+  bool m_is_attribute = false;
 };
 
 struct non_renderable_event : public event
 {
   non_renderable_event() { m_is_renderable = false; }
+};
+
+// Superclass for clefs, time sigs, etc
+struct attribute_event : public event
+{
+  attribute_event() { m_is_attribute = true; }
 };
 
 /*
@@ -62,33 +68,35 @@ struct clef_and_line
 // map orders by stave and so is preferable to unordered_map?
 using stave_num_to_clef_map = std::map<int, clef_and_line>; 
 
-// Key sig, time sig, clef, etc
-// TODO BREAK THIS UP
-struct attributes : public event
+struct time_sig_event : public attribute_event
 {
-  int m_beats = 0; // time sig: always same for all staves, in all parts?
-  int m_beat_type = 0; 
- 
-  // If there's a clef change mid line, this map should just have the new
-  //  clef(s?) - there won't necessarily be as many elements as there are 
-  //  staves in the score.
-  stave_num_to_clef_map m_clefs;
+  fraction m_fraction; // what kind of weird time sigs are there...?
+  std::string get_description() const override;
+};
 
-  // ...whereas if there's a key change, the new key sig should be rendered
-  //  on all staves for this part.
-  //  (Although can be rendered differently according to clef)
-  //  But deffo can be different for different parts.
+struct key_sig_event : public attribute_event
+{
   key_sig m_key_sig = {};
+  std::string get_description() const override;
 
-  int m_num_staves = 1;  // Num staves for this part; I don't see this changing
-    // mid piece! -- Could it?!
+  // Set from the MusicXML 'fifths' key sig attribute, where positive means number of
+  //  sharps, negative means number of flats.
+  // Return true if set successfully.
+  bool set_from_num_fifths(int num_fifths);
+};
 
-  // How many lines in a staff! Could be 1 for percussion.
-  // I would be surprised if this changed mid-piece but who knows!
+struct clef_event : public attribute_event
+{
+  stave_num_to_clef_map m_clef_map;
+  std::string get_description() const override;
+};
+
+// Hmmm this info goes in the info for the current part we are parsing...
+//  but it's not renderable in a vertical. Riiight?
+struct stave_event : public non_renderable_event /* not attribute_event?! */
+{
+  int m_num_staves = 1;
   int m_num_staff_lines = 5;
-
-  void normalize_time(int& ticks, int& divisions, fraction& time) override;
-
   std::string get_description() const override;
 };
 

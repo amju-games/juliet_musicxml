@@ -5,25 +5,7 @@ namespace juliet_musicxml
 {
 void event::normalize_time(int& ticks, int& divisions, fraction& time)
 {
-}
-
-std::string attributes::get_description() const
-{
-  std::stringstream ss;
-  ss << "Attributes: Time " << m_beats << "/" << m_beat_type
-     << " Key: " << to_string(m_key_sig)
-     << " Staves: " << m_num_staves
-     << " Clefs: ";
-  for (const auto& [staff, clef] : m_clefs)
-  {
-    ss << "(" << staff << ": " << clef.m_sign << " line " << clef.m_line << ") ";
-  }
-  return ss.str();
-}
-
-void attributes::normalize_time(int& ticks, int& divisions, fraction& norm_time)
-{
-  m_normalized_start_time = norm_time;
+  m_normalized_start_time = time;
 }
 
 void note::normalize_time(int& ticks, int& divs, fraction& norm_time)
@@ -139,6 +121,63 @@ std::string stem::to_string() const
   return m_direction == direction::STEM_UP ? "U" : 
     (m_direction == direction::STEM_DOWN ? "D" : 
     "-");
+}
+
+std::string time_sig_event::get_description() const
+{
+  std::stringstream ss;
+  // don't normalize this fraction!
+  ss << "Time sig: " << m_fraction.num << "/" << m_fraction.denom;
+  return ss.str();
+}
+
+std::string key_sig_event::get_description() const
+{
+  std::stringstream ss;
+  ss << "Key sig: " << to_string(m_key_sig);
+  return ss.str();
+}
+
+// TODO Move this keysig stuff
+
+// Add an int to an enum value, giving another enum value as result.
+// Just a convenience.
+template <typename ENUM_TYPE>
+ENUM_TYPE enum_add(ENUM_TYPE e, int i)
+{
+  return static_cast<ENUM_TYPE>(static_cast<int>(e) + i); 
+}
+
+bool key_sig_event::set_from_num_fifths(int n)
+{
+  if (n == 0) return false;
+  if (n > 0)
+  {
+    m_key_sig = enum_add(key_sig::KEYSIG_0_SHARP, n);
+  }   
+  else 
+  {
+    m_key_sig = enum_add(key_sig::KEYSIG_0_FLAT, -n);
+  }  
+  return true;
+}
+
+std::string clef_event::get_description() const
+{
+  std::stringstream ss;
+  ss << "Clefs: ";
+  for (const auto& [staff, clef] : m_clef_map)
+  {
+    ss << "(" << staff << ": " << clef.m_sign << " line " << clef.m_line << ") ";
+  }
+  return ss.str();
+}
+
+std::string stave_event::get_description() const
+{
+  std::stringstream ss;
+  ss << "Staves: " << m_num_staves << " lines: " << m_num_staff_lines;
+  return ss.str();
 }
 }
 

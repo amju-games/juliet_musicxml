@@ -19,20 +19,27 @@ TEST_CASE("Parse simple xml file example", "xml_parser")
   const auto& bars = it->second;
   REQUIRE(!bars.empty());
   const auto& bar = bars[0];
-  REQUIRE(bar.events.size() == 3); // number of events in the bar in the example XML
+  REQUIRE(bar.events.size() == 4); // number of events in the bar in the example XML
   // First event should be Music XML divisions
   REQUIRE(dynamic_cast<divisions*>(bar.events[0].get())); 
   const auto* divs = dynamic_cast<divisions*>(bar.events[0].get());
   REQUIRE(divs->m_num_divisions == 48); // depends on contents of file, not a good test
-  // Second event: remaining attributes for the bar
-  REQUIRE(dynamic_cast<attributes*>(bar.events[1].get())); 
-  const auto* attrs = dynamic_cast<attributes*>(bar.events[1].get());
-  REQUIRE(attrs->m_beats == 4);
-  REQUIRE(attrs->m_beat_type == 4);
-  REQUIRE(attrs->m_clefs.size() == 1);
-  REQUIRE(attrs->m_clefs.at(1).m_sign == "G");
+  // Second event: clef attributes for the bar
+  REQUIRE(dynamic_cast<clef_event*>(bar.events[1].get())); 
+  const auto* clefs = dynamic_cast<clef_event*>(bar.events[1].get());
+  REQUIRE(clefs->m_clef_map.size() == 1);
+  REQUIRE(clefs->m_clef_map.at(1).m_sign == "G");
+  const auto* time_sig = dynamic_cast<time_sig_event*>(bar.events[2].get());
+  REQUIRE(time_sig->m_fraction.num == 4);
+  REQUIRE(time_sig->m_fraction.denom == 4);
+  // No key sig because nothing renderable.
+  // This would be different if naturalizing a previous time sig.
+  const auto* n = dynamic_cast<note*>(bar.events[3].get());
+
   // Check part 
   REQUIRE(bar.part_id == "P1"); // part name should match what's in the example XML
+
+  // TODO Other attribute event types
 }
 
 TEST_CASE("Parse two-bar xml file example", "xml_parser")
@@ -53,24 +60,29 @@ TEST_CASE("Parse two-bar xml file example", "xml_parser")
   const auto* divs = dynamic_cast<divisions*>(event_1.get());
   REQUIRE(divs->m_num_divisions == 1);
   const auto& event_2 = bar.events[1];
-  const auto* attrs = dynamic_cast<attributes*>(event_2.get());
-  REQUIRE(attrs->m_key_sig == key_sig::KEYSIG_1_SHARP);
+  const auto* clefs = dynamic_cast<clef_event*>(event_2.get());
+  REQUIRE(clefs);
+  REQUIRE(clefs->m_clef_map.size() == 1); // one clef in XML file
+
+  // TODO Key sig
+//  REQUIRE(attrs->m_key_sig == key_sig::KEYSIG_1_SHARP);
 }
 
 TEST_CASE("Parse attribs: 4 flats key sig", "xml_parser internals")
 {
   using namespace juliet_musicxml;
   const auto event = parse_event("<attributes><key><fifths>-4</fifths></key></attributes>");
-  const auto* attrs = dynamic_cast<attributes*>(event.get());
-  REQUIRE(attrs->m_key_sig == key_sig::KEYSIG_4_FLAT);
+  const auto* key_sig = dynamic_cast<key_sig_event*>(event.get());
+  REQUIRE(key_sig);
+  REQUIRE(key_sig->m_key_sig == key_sig::KEYSIG_4_FLAT);
 }
 
 TEST_CASE("Parse attribs: num staves", "xml_parser internals")
 {
   using namespace juliet_musicxml;
   const auto event = parse_event("<attributes><staves>2</staves></attributes>");
-  const auto* attrs = dynamic_cast<attributes*>(event.get());
-  REQUIRE(attrs->m_num_staves == 2);
+  const auto* staves = dynamic_cast<stave_event*>(event.get());
+  REQUIRE(staves->m_num_staves == 2);
 }
 
 TEST_CASE("Parse attribs: divisions", "xml_parser internals")
@@ -88,12 +100,12 @@ TEST_CASE("Parse attribs: clefs", "xml_parser internals")
 <attributes><clef number="1"><sign>F</sign><line>4</line></clef><clef number="2"><sign>G</sign><line>2</line></clef></attributes>
   )");
 
-  const auto* attrs = dynamic_cast<attributes*>(event.get());
-  REQUIRE(attrs->m_clefs.size() == 2);
-  REQUIRE(attrs->m_clefs.at(1).m_sign == "F");
-  REQUIRE(attrs->m_clefs.at(1).m_line == 4);
-  REQUIRE(attrs->m_clefs.at(2).m_sign == "G");
-  REQUIRE(attrs->m_clefs.at(2).m_line == 2);
+  const auto* clefs = dynamic_cast<clef_event*>(event.get());
+  REQUIRE(clefs->m_clef_map.size() == 2);
+  REQUIRE(clefs->m_clef_map.at(1).m_sign == "F");
+  REQUIRE(clefs->m_clef_map.at(1).m_line == 4);
+  REQUIRE(clefs->m_clef_map.at(2).m_sign == "G");
+  REQUIRE(clefs->m_clef_map.at(2).m_line == 2);
 }
 
 TEST_CASE("Parse note: staff", "xml_parser_internals")

@@ -9,14 +9,6 @@ namespace juliet_musicxml
 {
 namespace internal
 {
-// Add an int to an enum value, giving another enum value as result.
-// Just a convenience.
-template <typename ENUM_TYPE>
-ENUM_TYPE enum_add(ENUM_TYPE e, int i)
-{
-  return static_cast<ENUM_TYPE>(static_cast<int>(e) + i);
-}
-
 class ElementHandler 
 {
 public:
@@ -61,13 +53,23 @@ stem::direction stem_lookup(const std::string str)
 class AttributesHandler : public ElementHandler 
 {
 private:
-    attributes m_attribs;
     std::string m_child_name;
-    int m_current_clef = 1;
 
     // set to non-zero if we parse a divisions element, and we will 
-    //  then create a divisions event on exiting this attribuetes element.
+    //  then create a divisions event on exiting this attributes element.
     divisions m_divisions; 
+
+    // Similarly for these other attributes, we will create events if they
+    //  are non-null.
+    clef_event m_clefs;
+    int m_current_clef = 1; // to set staff for clef in above event.
+
+    time_sig_event m_time_sig;
+  
+    key_sig_event m_key_sig;
+    bool m_key_sig_is_set = false; // set to true if key sig is parsed successfully
+
+    stave_event m_staves;
 
     void HandleClefElement(const XMLElement& element)
     {
@@ -81,7 +83,12 @@ private:
 public:  
     void handleEnter(const XMLElement& element) override 
     { 
-        m_attribs = {}; 
+        m_divisions.m_num_divisions = 0;
+        m_time_sig.m_fraction = fraction(0, 0); // 0/0 means not set
+        m_clefs.m_clef_map.clear();
+        m_current_clef = 1;
+        m_key_sig_is_set = false;
+        m_staves.m_num_staves = 0;
     }
 
     void handleChildEnter(const XMLElement& element) override 
@@ -97,41 +104,59 @@ public:
     void handleText(const XMLText& text) override 
     {
         const std::string textValue = text.Value();
-        if (get_named_value(m_child_name, "beats", textValue, m_attribs.m_beats)) {}
-        else if (get_named_value(m_child_name, "beat-type", textValue, m_attribs.m_beat_type)) {}
-        else if (get_named_value(m_child_name, "staves", textValue, m_attribs.m_num_staves)) {}
+        if (get_named_value(m_child_name, "beats", textValue, m_time_sig.m_fraction.num)) {}
+        else if (get_named_value(m_child_name, "beat-type", textValue, m_time_sig.m_fraction.denom)) {}
+        else if (get_named_value(m_child_name, "staves", textValue, m_staves.m_num_staves)) {}
         else if (get_named_value(m_child_name, "divisions", textValue, m_divisions.m_num_divisions)) {}
         else if (m_child_name == "sign") 
         { 
-            m_attribs.m_clefs[m_current_clef].m_sign = textValue; 
+            m_clefs.m_clef_map[m_current_clef].m_sign = textValue; 
         }
-        else if (get_named_value(m_child_name, "line", textValue, m_attribs.m_clefs[m_current_clef].m_line)) {}
-        else if (m_child_name == "fifths")
+        else if (m_child_name == "line")
         {
-            try 
+            int line_num = 0;
+            if (get_named_value(m_child_name, "line", textValue, line_num))
             {
-                int n = std::stoi(textValue); 
-                if (n > 0)
-                {
-                    m_attribs.m_key_sig = enum_add(key_sig::KEYSIG_0_SHARP, n); 
-                }
-                else if (n < 0)
-                {
-                    m_attribs.m_key_sig = enum_add(key_sig::KEYSIG_0_FLAT, -n); 
-                }
-            } 
-            catch (...) {} 
+                // Will create entry in map if it doesn't exist
+                m_clefs.m_clef_map[m_current_clef].m_line = line_num;
+            }
+        }
+        else if (m_child_name == "fifths")
+        { 
+            int num_fifths = 0;
+            if (get_named_value(m_child_name, "fifths", textValue, num_fifths))
+            {
+               m_key_sig_is_set = m_key_sig.set_from_num_fifths(num_fifths);
+            }  
         }
     }
 
     void handleExit(const XMLElement& element, bar& data) override 
     {
+        if (m_staves.m_num_staves != 0)
+        {
+          data.events.emplace_back(std::make_unique<stave_event>(m_staves));
+        }
+
         if (m_divisions.m_num_divisions != 0)
         { 
           data.events.emplace_back(std::make_unique<divisions>(m_divisions));
         }
-        // TODO Split other attributes similarly to divisions
-        data.events.emplace_back(std::make_unique<attributes>(m_attribs));
+
+        if (!m_clefs.m_clef_map.empty())
+        {
+          data.events.emplace_back(std::make_unique<clef_event>(m_clefs));
+        }
+
+        if (m_key_sig_is_set)
+        {
+          data.events.emplace_back(std::make_unique<key_sig_event>(m_key_sig));
+        }
+
+        if (m_time_sig.m_fraction.denom != 0)
+        {
+          data.events.emplace_back(std::make_unique<time_sig_event>(m_time_sig));
+        }
     }    
 };
 
