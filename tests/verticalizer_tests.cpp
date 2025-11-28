@@ -5,6 +5,7 @@
 #include "make_event_helpers.h"
 #include "print_helper.h"
 #include "test_event.h"
+#include "time_normalizer.h" // this is just to sort an event_vec, move that out of here
 #include "verticalizer.h"
 
 namespace juliet_musicxml
@@ -188,5 +189,43 @@ TEST_CASE("Group verticals", "verticalizer")
   check_event_is_vertical(events[1], 4, 1);
   check_event_is_vertical(events[2], 3, 2);
   check_event_is_vertical(events[3], 1, 3);
+}
+
+// Attributes with same start time as notes etc should get put into
+//  separate verticals.
+TEST_CASE("A-01 Attribute Isolation", "[attributes]")
+{
+  using namespace juliet_musicxml;
+
+  // Events: Clef @ Time 1, Note @ Time 1 (Two verticals expected)
+  event_vec events;
+  
+  // NOTE: We place the note first in the vector. 
+  // The verticalizer must sort them and group them correctly.
+  events.emplace_back(make_note("c", 1, 1));
+  events.emplace_back(make_clef(1, "G")); 
+
+  time_normalizer::sort_events(events);
+
+  verticalizer v;
+  v.group_verticals(events);
+
+  // 1. Check total number of verticals
+  REQUIRE(events.size() == 2);
+
+  // 2. Check Vertical 1: The Attribute. 
+  // Due to sorting logic, the attribute must come first.
+  check_event_is_vertical(events[0], 1, 1);
+  
+  // Optional detailed check: Verify the type of the child (optional but good).
+  vertical* v0_ptr = dynamic_cast<vertical*>(events[0].get());
+  REQUIRE(dynamic_cast<clef_event*>(v0_ptr->m_events[0].get()));
+
+  // 3. Check Vertical 2: The Rhythmic Event.
+  check_event_is_vertical(events[1], 1, 1);
+  
+  // Optional detailed check: Verify the type of the child.
+  vertical* v1_ptr = dynamic_cast<vertical*>(events[1].get());
+  REQUIRE(dynamic_cast<note*>(v1_ptr->m_events[0].get()));
 }
 

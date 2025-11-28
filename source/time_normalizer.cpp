@@ -57,6 +57,7 @@ void time_normalizer::sort_events(event_vec& events)
 
 bool operator<(const p_event& a, const p_event& b) 
 {
+  // TODO Remove this if we only sort one bar at a time
   if (a->m_bar_number != b->m_bar_number)
   {
     return a->m_bar_number < b->m_bar_number;
@@ -65,18 +66,13 @@ bool operator<(const p_event& a, const p_event& b)
   {
     return a->m_normalized_start_time < b->m_normalized_start_time;
   }
-  if (a->m_part != b->m_part)
+  // For a mix of attribute and note/rest events, the attributes should
+  //  come first.
+  if (a->m_is_attribute && !b->m_is_attribute)
   {
-    return a->m_part < b->m_part; 
+    return true;
   }
-//  if (a->m_voice != b->m_voice)
-//  {
-//    return a->m_voice < b->m_voice; 
-//  }
-  if (a->m_staff != b->m_staff)
-  {
-    return a->m_staff < b->m_staff; 
-  }
+
   return a->m_id < b->m_id;
 }
 }

@@ -56,7 +56,6 @@ std::unique_ptr<vertical> make_vertical(
     {
       // Case: CHORD (V-02, V-04 Time 5, V-05)
       auto new_chord = std::make_unique<chord>(notes_in_voice.begin(), notes_in_voice.end());
-//        new_chord->m_events = std::move(notes_in_voice);
       final_vertical_children.emplace_back(std::move(new_chord));
     }
     else 
@@ -74,7 +73,6 @@ std::unique_ptr<vertical> make_vertical(
 
   // 5. Create and return the final vertical object.
   auto final_vertical = std::make_unique<vertical>(final_vertical_children.begin(), final_vertical_children.end());
-//    final_vertical->m_events = std::move(final_vertical_children);
     
   return final_vertical;
 }
@@ -105,10 +103,12 @@ void verticalizer::group_verticals(event_vec& events)
   auto last = first; 
   while (first != events.end())
   {
-    // Find a range of events with the same start time
+    // Find a range of events with the same start time.
+    // Attributes are immediately split into a separate vertical.
     ++last;
     if (last == events.end() ||
-        (*last)->m_normalized_start_time != (*first)->m_normalized_start_time)
+        (*last)->m_normalized_start_time != (*first)->m_normalized_start_time ||
+        (*first)->m_is_attribute)
     {
       // Move the range into a new vertical, then replace the range with the vertical.
       std::unique_ptr<vertical> vert = internal::make_vertical(first, last);
