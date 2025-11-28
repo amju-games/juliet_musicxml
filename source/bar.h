@@ -1,5 +1,6 @@
 #pragma once
 
+#include <memory>
 #include <vector>
 #include "event.h"
 
@@ -14,6 +15,6 @@ struct bar
   event_vec events; 
 };
 
-using bar_vec = std::vector<bar>;
+using bar_vec = std::vector<std::unique_ptr<bar>>;
 }
 

@@ -19,25 +19,25 @@ TEST_CASE("Parse simple xml file example", "xml_parser")
   const auto& bars = it->second;
   REQUIRE(!bars.empty());
   const auto& bar = bars[0];
-  REQUIRE(bar.events.size() == 4); // number of events in the bar in the example XML
+  REQUIRE(bar->events.size() == 4); // number of events in the bar in the example XML
   // First event should be Music XML divisions
-  REQUIRE(dynamic_cast<divisions*>(bar.events[0].get())); 
-  const auto* divs = dynamic_cast<divisions*>(bar.events[0].get());
+  REQUIRE(dynamic_cast<divisions*>(bar->events[0].get())); 
+  const auto* divs = dynamic_cast<divisions*>(bar->events[0].get());
   REQUIRE(divs->m_num_divisions == 48); // depends on contents of file, not a good test
   // Second event: clef attributes for the bar
-  REQUIRE(dynamic_cast<clef_event*>(bar.events[1].get())); 
-  const auto* clefs = dynamic_cast<clef_event*>(bar.events[1].get());
+  REQUIRE(dynamic_cast<clef_event*>(bar->events[1].get())); 
+  const auto* clefs = dynamic_cast<clef_event*>(bar->events[1].get());
   REQUIRE(clefs->m_clef_map.size() == 1);
   REQUIRE(clefs->m_clef_map.at(1).m_sign == "G");
-  const auto* time_sig = dynamic_cast<time_sig_event*>(bar.events[2].get());
+  const auto* time_sig = dynamic_cast<time_sig_event*>(bar->events[2].get());
   REQUIRE(time_sig->m_fraction.num == 4);
   REQUIRE(time_sig->m_fraction.denom == 4);
   // No key sig because nothing renderable.
   // This would be different if naturalizing a previous time sig.
-  const auto* n = dynamic_cast<note*>(bar.events[3].get());
+  const auto* n = dynamic_cast<note*>(bar->events[3].get());
 
   // Check part 
-  REQUIRE(bar.part_id == "P1"); // part name should match what's in the example XML
+  REQUIRE(bar->part_id == "P1"); // part name should match what's in the example XML
 
   // TODO Other attribute event types
 }
@@ -56,10 +56,10 @@ TEST_CASE("Parse two-bar xml file example", "xml_parser")
   const auto& bars = score.parts.begin()->second;
   REQUIRE(bars.size() == 2); // expect two bars
   const auto& bar = bars[0];
-  const auto& event_1 = bar.events[0];
+  const auto& event_1 = bar->events[0];
   const auto* divs = dynamic_cast<divisions*>(event_1.get());
   REQUIRE(divs->m_num_divisions == 1);
-  const auto& event_2 = bar.events[1];
+  const auto& event_2 = bar->events[1];
   const auto* clefs = dynamic_cast<clef_event*>(event_2.get());
   REQUIRE(clefs);
   REQUIRE(clefs->m_clef_map.size() == 1); // one clef in XML file
@@ -151,22 +151,22 @@ TEST_CASE("Parse note, rest, rest, note", "xml_parser")
 <note><step>D</step><duration>6</duration></note>
 )");
   
-  REQUIRE(dynamic_cast<note*>(bar.events[0].get())); 
-  REQUIRE(dynamic_cast<rest*>(bar.events[1].get())); 
-  REQUIRE(dynamic_cast<rest*>(bar.events[2].get()));
-  REQUIRE(dynamic_cast<note*>(bar.events[3].get())); // make sure flag is reset
+  REQUIRE(dynamic_cast<note*>(bar->events[0].get())); 
+  REQUIRE(dynamic_cast<rest*>(bar->events[1].get())); 
+  REQUIRE(dynamic_cast<rest*>(bar->events[2].get()));
+  REQUIRE(dynamic_cast<note*>(bar->events[3].get())); // make sure flag is reset
 
-  note* n = dynamic_cast<note*>(bar.events[0].get());
+  note* n = dynamic_cast<note*>(bar->events[0].get());
   // Expect note and rest staves to default to 1
   REQUIRE(n->m_staff == 1); 
 
-  rest* r = dynamic_cast<rest*>(bar.events[1].get());
+  rest* r = dynamic_cast<rest*>(bar->events[1].get());
   REQUIRE(r->m_duration == 5);
   REQUIRE(r->m_staff == 3);
   REQUIRE(r->m_voice == 2);
   REQUIRE(r->m_is_whole_bar == true);
 
-  r = dynamic_cast<rest*>(bar.events[2].get());
+  r = dynamic_cast<rest*>(bar->events[2].get());
   REQUIRE(r->m_duration == 7);
   REQUIRE(r->m_staff == 1);
   REQUIRE(r->m_voice == 1);

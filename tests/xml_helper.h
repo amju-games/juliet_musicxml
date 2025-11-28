@@ -10,7 +10,7 @@ namespace juliet_musicxml
 score parse_score(const std::string& xml_snippet);
  
 // Parse the contents of a <measure>, giving the result as a bar.
-bar parse_bar(const std::string& xml_snippet);
+std::unique_ptr<bar> parse_bar(const std::string& xml_snippet);
 
 // Parse the contents of a <measure>, giving the result as a single event.
 p_event parse_event(const std::string& xml_snippet);

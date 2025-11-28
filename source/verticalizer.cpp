@@ -85,7 +85,7 @@ void verticalizer::group_verticals(score& sc)
   {
     for (auto& b : bars)
     {
-      group_verticals(b.events);
+      group_verticals(b->events);
     }
   }
 }

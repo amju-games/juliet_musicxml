@@ -38,14 +38,14 @@ void time_normalizer::normalize_times(score& sc)
       // Iterate over all events, tracking accumulated time and accounting
       //  for forward and backup events.
       // Using unique_ptr throughout: fix times in place
-      normalize_times(b, current_ticks, current_divs, norm_time);
+      normalize_times(*b, current_ticks, current_divs, norm_time);
 
       // Add unique ID for each event - what's the best way to do this?
-      for (auto& ev : b.events) { ev->set_id(unique_id++); }
+      for (auto& ev : b->events) { ev->set_id(unique_id++); }
 
       // sort events in this one bar; we won't need to sort the events 
       //  in the entire sequence of bars... riiight?
-      sort_events(b.events); 
+      sort_events(b->events); 
     }
   }
 }

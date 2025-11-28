@@ -23,7 +23,7 @@ score parse_score(const std::string& xml_snippet)
   return std::move(result.value());
 }
 
-bar parse_bar(const std::string& xml_snippet)
+std::unique_ptr<bar> parse_bar(const std::string& xml_snippet)
 {
   auto s = parse_score(xml_snippet);
   REQUIRE(!s.parts.empty());
@@ -38,8 +38,8 @@ bar parse_bar(const std::string& xml_snippet)
 p_event parse_event(const std::string& xml_snippet)
 {
   auto b = parse_bar(xml_snippet);
-  REQUIRE(!b.events.empty());
-  return std::move(b.events[0]);
+  REQUIRE(!b->events.empty());
+  return std::move(b->events[0]);
 }
 }
 

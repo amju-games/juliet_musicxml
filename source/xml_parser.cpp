@@ -381,10 +381,10 @@ expected_score parse_xml_doc(XMLDocument& doc)
              measureNode = measureNode->NextSiblingElement("measure"))
         {
             auto& part = scoreData.parts[partId];
-            part.emplace_back(parse_bar(measureNode));
-            bar& b = part.back();
-            b.part_id = partId; // add the part ID to the bar 
-            b.bar_number = bar_number++;
+            part.emplace_back(std::make_unique<bar>(parse_bar(measureNode)));
+            auto& b = part.back();
+            b->part_id = partId; // add the part ID to the bar 
+            b->bar_number = bar_number++;
         }
 //        scoreData.parts[partId] = std::move(bars);
     }
