@@ -16,9 +16,10 @@ namespace juliet_musicxml
 // ...using tinyxml2 is also a policy, it's our default policy and so the
 //  include should only live in the impl file for that policy. Also put an
 //  #ifdef around that impl file.
-template <class RETURN_TYPE,  // TODO we can use decltype here, right?
+template <class RETURN_TYPE,  // TODO we can use decltype here, right? Or just auto?
   class PARSER = tinyxml2_parser, // Default impl: use tinyxml2
   class INPUT = file,  // we need a way of decoupling parser type from input type. Does this do the job?
+   //  -- No just have different parser types, which can specialise the main bulk of the parsing
   class OUTPUT = std::ostream, // Decouple renderer type from where it renders to
   class RENDERER = text_renderer>
 class musicxml_renderer : public PARSER, public RENDERER
@@ -48,18 +49,10 @@ EXPECTED_OUTPUT render_musicxml(INPUT& input)
   time_normalizer tn;  
   // should the above type be a policy?
   // No - the internal slice is private impl and not policy-based.
-  const auto normalized_times_result = tn.normalize_times(parse_result);
-  if (!normalized_times_result)
-  {
-    return tl::unexpected(normalized_times_result.error());
-  }
+  tn.normalize_times(parse_result);
 
   verticalizer v;
-  const auto verticalized_result = v.group_verticals(normalized_times_result);
-  if (!verticalized_result)
-  {
-    return tl::unexpected(verticalized_result.error()); 
-  }
+  v.group_verticals(normalized_times_result);
 
   // The output renderer is very much a policy.
   return RENDERER::render(verticalized_result);

@@ -41,7 +41,6 @@ namespace juliet_musicxml
 
 std::ostream& operator<<(std::ostream& os, const fraction& f)
 {
-/*
   // Simplified fraction can obscure what's happening
   if (f.num % f.denom == 0)
   {
@@ -51,8 +50,9 @@ std::ostream& operator<<(std::ostream& os, const fraction& f)
   {
     os << "{" << f.num << "/" << f.denom << "}";
   }
-*/
-  os << "{" << f.num << "/" << f.denom << "}";
+
+  //os << "{" << f.num << "/" << f.denom << "}";
+
   return os; 
 }
 }

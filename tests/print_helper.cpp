@@ -1,6 +1,7 @@
 #include <iostream>
 #include "print_helper.h"
 #include "time_normalizer.h"
+#include "verticalizer.h"
 #include "xml_parser.h"
 
 using namespace juliet_musicxml;
@@ -42,10 +43,16 @@ bool parse_and_print(const std::string& filename)
   std::cout << "BEFORE NORMALIZING" << std::endl;
   print_score(s);
 
-  time_normalizer v;
-  v.normalize_times(s);
+  time_normalizer tn;
+  tn.normalize_times(s);
 
   std::cout << "AFTER NORMALIZING" << std::endl;
+  print_score(s);
+
+  verticalizer v;
+  v.group_verticals(s);
+  
+  std::cout << "AFTER GROUPING VERTICALS" << std::endl;
   print_score(s);
 
   return true;
