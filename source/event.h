@@ -29,7 +29,7 @@ struct event
  
   int m_id = 0; // every event has a unique ID, the order in which it is parsed.
   int m_bar_number = 1;
-  std::string m_part; // TODO index into parts - TODO
+  int m_part_index = 0; // index into parts in score
   fraction m_normalized_start_time;
   fraction m_normalized_duration; 
   int m_staff = 0;  // ?

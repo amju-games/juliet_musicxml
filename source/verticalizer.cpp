@@ -22,11 +22,7 @@ std::unique_ptr<vertical> make_vertical(
 {
   using namespace juliet_musicxml;
 
-  // 1. Get the start time (assuming the range is non-empty)
-//    const auto& start_time = (*first)->m_normalized_start_time;
-
-  // 2. Separate notes by voice and collect other events (rests, etc.)
-  //    We need to move the ownership from the input range.
+  // Separate notes by voice and collect other events (rests, etc.)
   std::map<int, event_vec> voice_groups;
   event_vec non_note_events;
     
@@ -38,7 +34,8 @@ std::unique_ptr<vertical> make_vertical(
     if (auto note_ptr = dynamic_cast<note*>(e.get()))
     {
       // Group notes by voice ID (m_voice)
-      voice_groups[note_ptr->m_voice].emplace_back(std::move(e));
+      int voice_part_combined_key = note_ptr->m_part_index << 8 | note_ptr->m_voice;
+      voice_groups[voice_part_combined_key].emplace_back(std::move(e));
     }
     else
     {
@@ -47,7 +44,7 @@ std::unique_ptr<vertical> make_vertical(
     }
   }
 
-  // 3. Chordify: Process each voice group into chords or single notes.
+  // Chordify: Process each voice group into chords or single notes.
   event_vec final_vertical_children;
   
   for (auto& [voice_id, notes_in_voice] : voice_groups)
@@ -66,29 +63,17 @@ std::unique_ptr<vertical> make_vertical(
     }
   }
 
-  // 4. Recombine: Add rests/non-note events.
+  // Recombine: Add rests/non-note events.
   // Case: REST (V-03, V-04 Time 3)
   std::move(non_note_events.begin(), non_note_events.end(), 
             std::back_inserter(final_vertical_children));
 
-  // 5. Create and return the final vertical object.
+  // Create and return the final vertical object.
   auto final_vertical = std::make_unique<vertical>(final_vertical_children.begin(), final_vertical_children.end());
     
   return final_vertical;
 }
 } // internal
-
-void verticalizer::group_verticals(score& sc)
-{
-  // Group verticals in each bar
-  for (auto& [part_id, bars] : sc.parts)
-  {
-    for (auto& b : bars)
-    {
-      group_verticals(b->events);
-    }
-  }
-}
 
 void verticalizer::group_verticals(event_vec& events)
 {
