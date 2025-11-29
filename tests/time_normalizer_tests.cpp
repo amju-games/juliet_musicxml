@@ -8,23 +8,6 @@
 
 using namespace juliet_musicxml;
 
-/*
-TEST_CASE("Show events in chopin example", "time_normalizer")
-{
-  REQUIRE(parse_and_print("xml/chopin.xml"));
-}
-
-TEST_CASE("Show events in two bar example", "time_normalizer")
-{
-  REQUIRE(parse_and_print("xml/two_bars.xml"));
-}
-
-TEST_CASE("Show events in Beethoven example", "time_normalizer")
-{
-  REQUIRE(parse_and_print("xml/beethoven.xml"));
-}
-*/
-
 TEST_CASE("Get timed events in one bar, check times", "time_normalizer")
 {
   bar b;
