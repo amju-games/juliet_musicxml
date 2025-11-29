@@ -26,7 +26,7 @@ void time_normalizer::normalize_times(score& sc)
     // being found in the source.
 
   // Iterate over the parts, calculating times within that part.
-  for (auto& [part_id, bars] : sc.parts)
+  for (auto& [part_id, bars] : sc.m_parts)
   {
     // Reset time to 0 for this part
     int current_ticks = 0;

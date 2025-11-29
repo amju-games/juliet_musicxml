@@ -31,7 +31,7 @@ TEST_CASE("P-01 Basic Two-Part Alignment", "[interleaving]")
   bar_vec p1_bars; // Create the bar vector explicitly
   p1_bars.emplace_back(make_bar(std::move(p1_events))); // Add the bar
   
-  s.parts["P1"] = std::move(p1_bars); // Move the bar vector into the map
+  s.add_new_part("P1", p1_bars);
 
   // --- Part 2 Setup ---
   event_vec p2_events;
@@ -40,7 +40,7 @@ TEST_CASE("P-01 Basic Two-Part Alignment", "[interleaving]")
   bar_vec p2_bars;
   p2_bars.emplace_back(make_bar(std::move(p2_events)));
   
-  s.parts["P2"] = std::move(p2_bars);
+  s.add_new_part("P2", p2_bars);
 
   event_vec verticals = interleaver::interleave_score_parts(s);
 
@@ -65,7 +65,7 @@ TEST_CASE("P-02 Sequential Bar Interleaving", "[interleaving]")
   p1_bars.emplace_back(make_bar(std::move(p1_bar1_events)));
   p1_bars.emplace_back(make_bar(std::move(p1_bar2_events)));
   
-  s.parts["P1"] = std::move(p1_bars); // Move the bar vector into the map
+  s.add_new_part("P1", p1_bars);
 
   // --- Part 2 Setup ---
   event_vec p2_bar1_events;
@@ -74,7 +74,7 @@ TEST_CASE("P-02 Sequential Bar Interleaving", "[interleaving]")
   bar_vec p2_bars;
   p2_bars.emplace_back(make_bar(std::move(p2_bar1_events)));
   
-  s.parts["P2"] = std::move(p2_bars);
+  s.add_new_part("P2", p2_bars);
 
   event_vec verticals = interleaver::interleave_score_parts(s);
 
@@ -101,7 +101,7 @@ TEST_CASE("P-03 Misaligned Bar Starts", "[interleaving]")
   p1_bars.emplace_back(make_bar(std::move(p1_bar1_events), 4));
   p1_bars.emplace_back(make_bar(std::move(p1_bar2_events), 4));
   
-  s.parts["P1"] = std::move(p1_bars);
+  s.add_new_part("P1", p1_bars);
 
   // --- Part 2 Setup ---
   event_vec p2_bar1_events;
@@ -110,7 +110,7 @@ TEST_CASE("P-03 Misaligned Bar Starts", "[interleaving]")
   bar_vec p2_bars;
   p2_bars.emplace_back(make_bar(std::move(p2_bar1_events), 6));
   
-  s.parts["P2"] = std::move(p2_bars);
+  s.add_new_part("P2", p2_bars);
 
   event_vec verticals = interleaver::interleave_score_parts(s);
 
@@ -133,7 +133,7 @@ TEST_CASE("P-04 Vertical Content Isolation", "[interleaving][chords]")
   bar_vec p1_bars;
   p1_bars.emplace_back(make_bar(std::move(p1_events)));
   
-  s.parts["P1"] = std::move(p1_bars);
+  s.add_new_part("P1", p1_bars);
 
   // --- Part 2 Setup ---
   event_vec p2_events;
@@ -142,7 +142,7 @@ TEST_CASE("P-04 Vertical Content Isolation", "[interleaving][chords]")
   bar_vec p2_bars;
   p2_bars.emplace_back(make_bar(std::move(p2_events)));
   
-  s.parts["P2"] = std::move(p2_bars);
+  s.add_new_part("P2", p2_bars);
 
   event_vec verticals = interleaver::interleave_score_parts(s);
 

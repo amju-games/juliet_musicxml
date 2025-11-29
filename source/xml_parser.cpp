@@ -373,20 +373,23 @@ expected_score parse_xml_doc(XMLDocument& doc)
         const char* partId = partElem->Attribute("id");
         if (!partId) continue;
         
+        auto& part = scoreData.add_new_part(partId);
+
         // Iterate over all bars in the part.
         int bar_number = 1;
-//        bar_vec bars;
         for (XMLNode* measureNode = partElem->FirstChildElement("measure");
              measureNode != nullptr;
              measureNode = measureNode->NextSiblingElement("measure"))
         {
-            auto& part = scoreData.parts[partId];
-            part.emplace_back(std::make_unique<bar>(parse_bar(measureNode)));
-            auto& b = part.back();
+            std::unique_ptr<bar> b = std::make_unique<bar>(parse_bar(measureNode));
+
+            // TODO Probably not necessary at all; if it is, shouldn't this be 
+            //  part index?
             b->part_id = partId; // add the part ID to the bar 
+
             b->bar_number = bar_number++;
+            part.second.emplace_back(std::move(b));
         }
-//        scoreData.parts[partId] = std::move(bars);
     }
     return std::move(scoreData);
 }

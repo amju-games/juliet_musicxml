@@ -26,7 +26,7 @@ void print_bars(const bar_vec& bars)
 
 void print_score(const score& s)
 {
-  for (const auto& [part, bars] : s.parts)
+  for (const auto& [part, bars] : s.m_parts)
   {   
     std::cout << "Part: " << part << std::endl;
     print_bars(bars);

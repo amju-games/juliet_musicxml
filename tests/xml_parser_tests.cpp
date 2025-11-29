@@ -14,8 +14,8 @@ TEST_CASE("Parse simple xml file example", "xml_parser")
   auto result = parser.parse_file("xml/simple.xml");
   REQUIRE(result);
   const auto& score = result.value();
-  REQUIRE(score.parts.size() == 1); // expect one part
-  const auto it = score.parts.begin();
+  REQUIRE(score.m_parts.size() == 1); // expect one part
+  const auto it = score.m_parts.begin();
   const auto& bars = it->second;
   REQUIRE(!bars.empty());
   const auto& bar = bars[0];
@@ -52,8 +52,8 @@ TEST_CASE("Parse two-bar xml file example", "xml_parser")
   auto result = p.parse_file("xml/two_bars.xml");
   REQUIRE(result);
   const auto& score = result.value();
-  REQUIRE(score.parts.size() == 1); // one part
-  const auto& bars = score.parts.begin()->second;
+  REQUIRE(score.m_parts.size() == 1); // one part
+  const auto& bars = score.m_parts.begin()->second;
   REQUIRE(bars.size() == 2); // expect two bars
   const auto& bar = bars[0];
   const auto& event_1 = bar->events[0];

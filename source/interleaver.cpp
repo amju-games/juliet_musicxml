@@ -10,7 +10,7 @@ event_vec interleaver::interleave_score_parts(juliet_musicxml::score& s)
 
   int part_index = 0; // until we refactor score
   // Iterate over each part in the score
-  for (auto& [part_id, bar_list] : s.parts)
+  for (auto& [part_id, bar_list] : s.m_parts)
   {
     // Keep track of the absolute start time for the beginning of the *next* bar 
     //fraction current_bar_start_time = fraction(0, 1); 
