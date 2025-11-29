@@ -179,5 +179,33 @@ std::string stave_event::get_description() const
   ss << "Staves: " << m_num_staves << " lines: " << m_num_staff_lines;
   return ss.str();
 }
+
+void sort(event_vec& events)
+{
+  std::sort(events.begin(), events.end());
+}
+
+bool operator<(const p_event& a, const p_event& b)  
+{
+  // TODO Remove this if we only sort one bar at a time
+//  if (a->m_bar_number != b->m_bar_number)
+//  {
+//    return a->m_bar_number < b->m_bar_number;
+//  }
+
+  if (a->m_normalized_start_time != b->m_normalized_start_time)
+  {
+    return a->m_normalized_start_time < b->m_normalized_start_time;
+  }
+
+  // For a mix of attribute and note/rest events, the attributes should
+  //  come first.
+  if (a->m_is_attribute && !b->m_is_attribute)
+  {
+    return true;
+  }
+
+  return a->m_id < b->m_id;
+}
 }
 

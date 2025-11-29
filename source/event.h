@@ -194,5 +194,7 @@ struct forward : public non_renderable_event
 using p_event = std::unique_ptr<event>;
 
 using event_vec = std::vector<p_event>;
+
+void sort(event_vec& events);
 }
 

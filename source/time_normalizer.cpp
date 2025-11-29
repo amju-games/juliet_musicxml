@@ -43,36 +43,10 @@ void time_normalizer::normalize_times(score& sc)
       // Add unique ID for each event - what's the best way to do this?
       for (auto& ev : b->events) { ev->set_id(unique_id++); }
 
-      // sort events in this one bar; we won't need to sort the events 
-      //  in the entire sequence of bars... riiight?
-      sort_events(b->events); 
+      // sort events in this one bar
+      // TODO We should only do this after interleaving parts
+      sort(b->events); 
     }
   }
-}
-
-void time_normalizer::sort_events(event_vec& events)
-{
-  std::sort(events.begin(), events.end());
-}
-
-bool operator<(const p_event& a, const p_event& b) 
-{
-  // TODO Remove this if we only sort one bar at a time
-  if (a->m_bar_number != b->m_bar_number)
-  {
-    return a->m_bar_number < b->m_bar_number;
-  }
-  if (a->m_normalized_start_time != b->m_normalized_start_time)
-  {
-    return a->m_normalized_start_time < b->m_normalized_start_time;
-  }
-  // For a mix of attribute and note/rest events, the attributes should
-  //  come first.
-  if (a->m_is_attribute && !b->m_is_attribute)
-  {
-    return true;
-  }
-
-  return a->m_id < b->m_id;
 }
 }

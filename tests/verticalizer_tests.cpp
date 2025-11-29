@@ -205,7 +205,7 @@ TEST_CASE("A-01 Attribute Isolation", "[attributes]")
   events.emplace_back(make_note("c", 1, 1));
   events.emplace_back(make_clef(1, "G")); 
 
-  time_normalizer::sort_events(events);
+  sort(events); // TODO Currently not done in verticalizer
 
   verticalizer v;
   v.group_verticals(events);
