@@ -42,10 +42,6 @@ void time_normalizer::normalize_times(score& sc)
 
       // Add unique ID for each event - what's the best way to do this?
       for (auto& ev : b->events) { ev->set_id(unique_id++); }
-
-      // sort events in this one bar
-      // TODO We should only do this after interleaving parts
-      sort(b->events); 
     }
   }
 }
