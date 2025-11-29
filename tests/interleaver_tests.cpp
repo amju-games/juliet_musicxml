@@ -1,7 +1,6 @@
 #include "catch.hpp"
 #include "interleaver.h"
 #include "make_event_helpers.h"
-#include "print_helper.h"
 #include "score.h"
 #include "verticalizer.h"
 
@@ -46,7 +45,7 @@ TEST_CASE("P-01 Basic Two-Part Alignment", "[interleaving]")
   event_vec verticals = interleaver::interleave_score_parts(s);
 
   REQUIRE(verticals.size() == 1);
-  check_event_is_vertical(verticals[0], 2, 1); // expect two note children, not a chord
+  check_event_is_vertical(verticals[0], 2, 1); // expect two note children, not a chord; time 1
 }
 
 TEST_CASE("P-02 Sequential Bar Interleaving", "[interleaving]")
@@ -57,10 +56,10 @@ TEST_CASE("P-02 Sequential Bar Interleaving", "[interleaving]")
 
   // --- Part 1 Setup ---
   event_vec p1_bar1_events;
-  p1_bar1_events.emplace_back(make_note("a", 1, 1));
+  p1_bar1_events.emplace_back(make_note("a", 1, 1)); // a, time 1, voice 1
   
   event_vec p1_bar2_events;
-  p1_bar2_events.emplace_back(make_note("e", 5, 1));
+  p1_bar2_events.emplace_back(make_note("e", 5, 1)); // e, time 5, voice 1
 
   bar_vec p1_bars; // Create the bar vector explicitly
   p1_bars.emplace_back(make_bar(std::move(p1_bar1_events)));
@@ -70,7 +69,7 @@ TEST_CASE("P-02 Sequential Bar Interleaving", "[interleaving]")
 
   // --- Part 2 Setup ---
   event_vec p2_bar1_events;
-  p2_bar1_events.emplace_back(make_note("c", 3, 1));
+  p2_bar1_events.emplace_back(make_note("c", 3, 1)); // c, time 3, voice 1
   
   bar_vec p2_bars;
   p2_bars.emplace_back(make_bar(std::move(p2_bar1_events)));
@@ -80,9 +79,9 @@ TEST_CASE("P-02 Sequential Bar Interleaving", "[interleaving]")
   event_vec verticals = interleaver::interleave_score_parts(s);
 
   REQUIRE(verticals.size() == 3);
-  check_event_is_vertical(verticals[0], 1, 1);
-  check_event_is_vertical(verticals[1], 1, 3);
-  check_event_is_vertical(verticals[2], 1, 5);
+  check_event_is_vertical(verticals[0], 1, 1); // Expect 1 note, time 1, in 1st part
+  check_event_is_vertical(verticals[1], 1, 3); // Expect 1 note, time 3, in 2nd part
+  check_event_is_vertical(verticals[2], 1, 5); // Expect 1 note, time 5, in 1st part
 }
 
 TEST_CASE("P-03 Misaligned Bar Starts", "[interleaving]")
@@ -116,9 +115,9 @@ TEST_CASE("P-03 Misaligned Bar Starts", "[interleaving]")
   event_vec verticals = interleaver::interleave_score_parts(s);
 
   REQUIRE(verticals.size() == 3);
-  check_event_is_vertical(verticals[0], 1, 3);
-  check_event_is_vertical(verticals[1], 1, 4);
-  check_event_is_vertical(verticals[2], 1, 5);
+  check_event_is_vertical(verticals[0], 1, 3); // a, time 3
+  check_event_is_vertical(verticals[1], 1, 4); // b, time 4
+  check_event_is_vertical(verticals[2], 1, 5); // b, time 5
 }
 
 TEST_CASE("P-04 Vertical Content Isolation", "[interleaving][chords]")
@@ -148,7 +147,7 @@ TEST_CASE("P-04 Vertical Content Isolation", "[interleaving][chords]")
   event_vec verticals = interleaver::interleave_score_parts(s);
 
   REQUIRE(verticals.size() == 1);
-  check_event_is_vertical(verticals[0], 2, 1);
+  check_event_is_vertical(verticals[0], 2, 1); // 2 note children; not a chord.
   
   vertical* v0_ptr = dynamic_cast<vertical*>(verticals[0].get());
   REQUIRE(dynamic_cast<note*>(v0_ptr->m_events[0].get()));

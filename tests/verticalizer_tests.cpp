@@ -5,7 +5,6 @@
 #include "make_event_helpers.h"
 #include "print_helper.h"
 #include "test_event.h"
-#include "time_normalizer.h" // this is just to sort an event_vec, move that out of here
 #include "verticalizer.h"
 
 namespace juliet_musicxml
