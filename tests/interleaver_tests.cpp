@@ -1,5 +1,7 @@
 #include "catch.hpp"
+#include "interleaver.h"
 #include "make_event_helpers.h"
+#include "print_helper.h"
 #include "score.h"
 #include "verticalizer.h"
 
@@ -11,12 +13,9 @@ void check_event_is_vertical(const p_event& e, int num_children, int time);
 
 std::unique_ptr<bar> make_bar(event_vec&& events, int bar_length = 4)
 {
-  return std::make_unique<bar>();
-}
-
-event_vec interleave_score_parts(score&) 
-{
-  return event_vec();
+  bar b;
+  b.events = std::move(events);
+  return std::make_unique<bar>(std::move(b));
 }
 }
 
@@ -44,10 +43,10 @@ TEST_CASE("P-01 Basic Two-Part Alignment", "[interleaving]")
   
   s.parts["P2"] = std::move(p2_bars);
 
-  event_vec verticals = interleave_score_parts(s);
+  event_vec verticals = interleaver::interleave_score_parts(s);
 
   REQUIRE(verticals.size() == 1);
-  check_event_is_vertical(verticals[0], 2, 1);
+  check_event_is_vertical(verticals[0], 2, 1); // expect two note children, not a chord
 }
 
 TEST_CASE("P-02 Sequential Bar Interleaving", "[interleaving]")
@@ -78,7 +77,7 @@ TEST_CASE("P-02 Sequential Bar Interleaving", "[interleaving]")
   
   s.parts["P2"] = std::move(p2_bars);
 
-  event_vec verticals = interleave_score_parts(s);
+  event_vec verticals = interleaver::interleave_score_parts(s);
 
   REQUIRE(verticals.size() == 3);
   check_event_is_vertical(verticals[0], 1, 1);
@@ -114,7 +113,7 @@ TEST_CASE("P-03 Misaligned Bar Starts", "[interleaving]")
   
   s.parts["P2"] = std::move(p2_bars);
 
-  event_vec verticals = interleave_score_parts(s);
+  event_vec verticals = interleaver::interleave_score_parts(s);
 
   REQUIRE(verticals.size() == 3);
   check_event_is_vertical(verticals[0], 1, 3);
@@ -146,8 +145,7 @@ TEST_CASE("P-04 Vertical Content Isolation", "[interleaving][chords]")
   
   s.parts["P2"] = std::move(p2_bars);
 
-  verticalizer v; // Assuming this is needed/used by interleave
-  event_vec verticals = interleave_score_parts(s);
+  event_vec verticals = interleaver::interleave_score_parts(s);
 
   REQUIRE(verticals.size() == 1);
   check_event_is_vertical(verticals[0], 2, 1);
