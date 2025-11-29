@@ -39,7 +39,8 @@ void note::normalize_time(int& ticks, int& divs, fraction& norm_time)
 std::string note::get_description() const
 {
   std::stringstream ss; 
-  ss << "Note: " << m_pitch.to_string() 
+  ss << "Note: P" << m_part_index << " "
+     << m_pitch.to_string() 
      << (m_is_chord ? " ch" : "   ") 
      << "\tDuration: " << m_normalized_duration 
      << " Type: " << m_type
@@ -65,7 +66,8 @@ void rest::normalize_time(int& ticks, int& divs, fraction& time)
 std::string rest::get_description() const
 {
   std::stringstream ss;
-  ss << "Rest: " << m_type << "\tDur: " << m_normalized_duration
+  ss << "Rest: P" << m_part_index << " "
+     << m_type << "\tDur: " << m_normalized_duration
      << " Start at: " << m_normalized_start_time 
      << " Staff: " << m_staff
      << " Voice: " << m_voice;

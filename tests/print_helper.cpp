@@ -1,4 +1,5 @@
 #include <iostream>
+#include "interleaver.h"
 #include "print_helper.h"
 #include "time_normalizer.h"
 #include "verticalizer.h"
@@ -38,22 +39,16 @@ bool parse_and_print(const std::string& filename)
   auto es = parser.parse_file(filename);
   score& s = es.value();
 
-  // TODO Description should be made on the fly in each event type,
-  //  not during time normalization
-  std::cout << "BEFORE NORMALIZING" << std::endl;
-  print_score(s);
+  //std::cout << "BEFORE NORMALIZING" << std::endl;
+  //print_score(s);
 
   time_normalizer tn;
   tn.normalize_times(s);
 
-  std::cout << "AFTER NORMALIZING" << std::endl;
-  print_score(s);
-
-  verticalizer v;
-  v.group_verticals(s);
-  
-  std::cout << "AFTER GROUPING VERTICALS" << std::endl;
-  print_score(s);
+  // TODO split up tasks
+  event_vec verticals = interleaver::interleave_score_parts(s);
+  std::cout << filename << ":\n";
+  print_events(verticals);
 
   return true;
 }
