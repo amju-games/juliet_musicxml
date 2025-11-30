@@ -15,6 +15,10 @@ struct test_event : public event
     return m_description;
   }
 
+  void render(i_renderer&) const override
+  {
+  }
+
   std::string m_description;
   int m_voice = 1;
 };

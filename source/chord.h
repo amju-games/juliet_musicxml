@@ -20,6 +20,7 @@ struct chord : public vertical
   chord(event_vec::iterator first, event_vec::iterator last) : vertical(first, last) {}
 
   std::string get_description() const override;
+  void render(i_renderer&) const override;
 
   chord_info m_chord_info;
 };

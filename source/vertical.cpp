@@ -1,4 +1,5 @@
 #include <sstream>
+#include "i_renderer.h"
 #include "vertical.h"
 
 namespace juliet_musicxml
@@ -23,6 +24,16 @@ std::string vertical::get_description() const
     ss << "  " << e->get_description() << std::endl;
   }
   return ss.str();
+}
+
+void vertical::render(i_renderer& r) const 
+{
+  r.render_vertical(*this);
+ 
+  for (const auto& child : m_events) 
+  {
+    child->render(r); // Recursively render children
+  }
 }
 }
 

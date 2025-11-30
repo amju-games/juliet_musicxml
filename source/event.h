@@ -10,6 +10,8 @@
 
 namespace juliet_musicxml
 {
+class i_renderer;
+
 // Event types that we parse in MusicXML files.
 
 // Base class for event types. 
@@ -17,13 +19,15 @@ struct event
 {
   virtual ~event() = default;
 
+  virtual void render(i_renderer& r) const = 0;
+
   // MusicXML events don't know their start time until we do the 
   //  time normalization pass, where we count up durations, and use
   //  backup/forward/divisions events.
   virtual void normalize_time(int& ticks, int& divisions, fraction& time);
 
   // Create description on the fly, because we add more data with each pass.
-  virtual std::string get_description() const { return {}; }
+  virtual std::string get_description() const = 0;
   
   void set_id(int id) { m_id = id; }
  
@@ -40,6 +44,7 @@ struct event
 struct non_renderable_event : public event
 {
   non_renderable_event() { m_is_renderable = false; }
+  void render(i_renderer&) const override {}
 };
 
 // Superclass for clefs, time sigs, etc
@@ -72,12 +77,14 @@ struct time_sig_event : public attribute_event
 {
   fraction m_fraction; // what kind of weird time sigs are there...?
   std::string get_description() const override;
+  void render(i_renderer&) const override;
 };
 
 struct key_sig_event : public attribute_event
 {
   key_sig m_key_sig = {};
   std::string get_description() const override;
+  void render(i_renderer&) const override;
 
   // Set from the MusicXML 'fifths' key sig attribute, where positive means number of
   //  sharps, negative means number of flats.
@@ -89,6 +96,7 @@ struct clef_event : public attribute_event
 {
   stave_num_to_clef_map m_clef_map;
   std::string get_description() const override;
+  void render(i_renderer&) const override;
 };
 
 // Hmmm this info goes in the info for the current part we are parsing...
@@ -162,6 +170,7 @@ struct note : public note_rest_base
 
   void normalize_time(int& ticks, int& divisions, fraction& time) override;
   std::string get_description() const override;
+  void render(i_renderer&) const override;
 };
 
 struct rest : public note_rest_base
@@ -171,6 +180,7 @@ struct rest : public note_rest_base
 
   void normalize_time(int& ticks, int& divisions, fraction& time) override;
   std::string get_description() const override;
+  void render(i_renderer&) const override;
 };
 
 // Music XML <backup> element, to reposition the 'current time pointer'
@@ -195,6 +205,7 @@ using p_event = std::unique_ptr<event>;
 
 using event_vec = std::vector<p_event>;
 
+// Sort vec of events, primarily by normalized start time.
 void sort(event_vec& events);
 }
 

@@ -1,5 +1,6 @@
 #include <sstream>
 #include "event.h"
+#include "i_renderer.h"
 
 namespace juliet_musicxml
 {
@@ -51,6 +52,11 @@ std::string note::get_description() const
   return ss.str();
 }
 
+void note::render(i_renderer& r) const 
+{
+  r.render_note(*this);
+}
+
 void rest::normalize_time(int& ticks, int& divs, fraction& time)
 {
   const fraction event_duration(m_duration, divs);
@@ -72,6 +78,11 @@ std::string rest::get_description() const
      << " Staff: " << m_staff
      << " Voice: " << m_voice;
   return ss.str();
+}
+
+void rest::render(i_renderer& r) const 
+{
+  r.render_rest(*this);
 }
 
 void backup::normalize_time(int& ticks, int& divs, fraction& norm_time)
@@ -133,11 +144,21 @@ std::string time_sig_event::get_description() const
   return ss.str();
 }
 
+void time_sig_event::render(i_renderer& r) const 
+{
+  r.render_time_sig(*this);
+}
+
 std::string key_sig_event::get_description() const
 {
   std::stringstream ss;
   ss << "Key sig: " << to_string(m_key_sig);
   return ss.str();
+}
+
+void key_sig_event::render(i_renderer& r) const 
+{
+  r.render_key_sig(*this);
 }
 
 // TODO Move this keysig stuff
@@ -175,6 +196,11 @@ std::string clef_event::get_description() const
   return ss.str();
 }
 
+void clef_event::render(i_renderer& r) const 
+{
+  r.render_clef(*this);
+}
+
 std::string stave_event::get_description() const
 {
   std::stringstream ss;
@@ -189,12 +215,6 @@ void sort(event_vec& events)
 
 bool operator<(const p_event& a, const p_event& b)  
 {
-  // TODO Remove this if we only sort one bar at a time
-//  if (a->m_bar_number != b->m_bar_number)
-//  {
-//    return a->m_bar_number < b->m_bar_number;
-//  }
-
   if (a->m_normalized_start_time != b->m_normalized_start_time)
   {
     return a->m_normalized_start_time < b->m_normalized_start_time;
