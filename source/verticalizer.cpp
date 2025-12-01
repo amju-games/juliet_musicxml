@@ -33,7 +33,8 @@ std::unique_ptr<vertical> make_vertical(
     
     if (auto note_ptr = dynamic_cast<note*>(e.get()))
     {
-      // Group notes by voice ID (m_voice)
+      // Group notes which have the same part and voice -- 
+      //  we're combining part and voice into one integer key.
       int voice_part_combined_key = note_ptr->m_part_index << 8 | note_ptr->m_voice;
       voice_groups[voice_part_combined_key].emplace_back(std::move(e));
     }

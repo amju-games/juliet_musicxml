@@ -33,23 +33,3 @@ void print_score(const score& s)
   }
 }
 
-bool parse_and_print(const std::string& filename)
-{
-  xml_parser parser;
-  auto es = parser.parse_file(filename);
-  score& s = es.value();
-
-  //std::cout << "BEFORE NORMALIZING" << std::endl;
-  //print_score(s);
-
-  time_normalizer tn;
-  tn.normalize_times(s);
-
-  // TODO split up tasks
-  event_vec verticals = interleaver::interleave_score_parts(s);
-  std::cout << filename << ":\n";
-  print_events(verticals);
-
-  return true;
-}
-
