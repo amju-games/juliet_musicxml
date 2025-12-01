@@ -21,6 +21,8 @@ struct fraction
   fraction& operator-=(const fraction& f);
 
   friend std::ostream& operator<<(std::ostream&, const fraction& f);
+
+  float to_float() const;
 };
 
 inline fraction operator+(const fraction& f1, const fraction& f2)

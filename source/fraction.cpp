@@ -2,42 +2,47 @@
 
 namespace juliet_musicxml
 {
-  void fraction::normalize()
-  {
-    if (num % denom == 0)
-    {   
-      num /= denom;
-      denom = 1;
-    }
-  }
+float fraction::to_float() const
+{
+  return static_cast<float>(num) / static_cast<float>(denom);
+}
 
-  fraction& fraction::operator+=(const fraction& f)
-  {
-    if (denom == f.denom)
-    {
-      num += f.num;
-    }
-    else 
-    {
-      *this = fraction(num * f.denom + f.num * denom, denom * f.denom);
-    }
-    normalize();
-    return *this;
+void fraction::normalize()
+{
+  if (num % denom == 0)
+  {   
+    num /= denom;
+    denom = 1;
   }
+}
 
-  fraction& fraction::operator-=(const fraction& f)
+fraction& fraction::operator+=(const fraction& f)
+{
+  if (denom == f.denom)
   {
-    if (denom == f.denom)
-    {
-      num -= f.num;
-    }
-    else
-    {
-      *this = fraction(num * f.denom - f.num * denom, denom * f.denom);
-    }
-    normalize();
-    return *this;
+    num += f.num;
   }
+  else 
+  {
+    *this = fraction(num * f.denom + f.num * denom, denom * f.denom);
+  }
+  normalize();
+  return *this;
+}
+
+fraction& fraction::operator-=(const fraction& f)
+{
+  if (denom == f.denom)
+  {
+    num -= f.num;
+  }
+  else
+  {
+    *this = fraction(num * f.denom - f.num * denom, denom * f.denom);
+  }
+  normalize();
+  return *this;
+}
 
 std::ostream& operator<<(std::ostream& os, const fraction& f)
 {
