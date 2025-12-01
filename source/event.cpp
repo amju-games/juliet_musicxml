@@ -43,8 +43,8 @@ std::string note::get_description() const
   ss << "Note: P" << m_part_index << " "
      << m_pitch.to_string() 
      << (m_is_chord ? " ch" : "   ") 
-     << "\tDuration: " << m_normalized_duration 
-     << " Type: " << m_type
+     << "\tDur: " << m_normalized_duration 
+     << " Dur type: " << m_duration_type
      << " Start at: " << m_normalized_start_time 
      << " Staff: " << m_staff
      << " Voice: " << m_voice
@@ -73,7 +73,8 @@ std::string rest::get_description() const
 {
   std::stringstream ss;
   ss << "Rest: P" << m_part_index << " "
-     << m_type << "\tDur: " << m_normalized_duration
+     << "\tDur: " << m_normalized_duration
+     << " Dur type: " << m_duration_type
      << " Start at: " << m_normalized_start_time 
      << " Staff: " << m_staff
      << " Voice: " << m_voice;
@@ -206,6 +207,14 @@ std::string stave_event::get_description() const
   std::stringstream ss;
   ss << "Staves: " << m_num_staves << " lines: " << m_num_staff_lines;
   return ss.str();
+}
+
+void composite_event::render(i_renderer& r) const 
+{
+  for (const auto& child : m_children)
+  {
+    child->render(r); // Recursively render children
+  }
 }
 
 void sort(event_vec& events)

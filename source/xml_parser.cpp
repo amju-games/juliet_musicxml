@@ -2,6 +2,7 @@
 #include <sstream>
 #include "tinyxml2.h"
 #include "xml_parser.h"
+#include "xml_strings.h"
 
 using namespace tinyxml2;
 
@@ -74,7 +75,7 @@ private:
     void HandleClefElement(const XMLElement& element)
     {
         // This could fail - TODO warning?
-        if (element.QueryAttribute("number", &m_current_clef) != XML_SUCCESS)
+        if (element.QueryAttribute(xml::NUMBER, &m_current_clef) != XML_SUCCESS)
         {
             m_current_clef = 1;
         }
@@ -210,7 +211,7 @@ public:
         else if (get_named_value(m_child_name, "alter", textValue, m_note.m_pitch.m_alter)) {}
         else if (get_named_value(m_child_name, "duration", textValue, m_note.m_duration)) {}
         else if (get_named_value(m_child_name, "staff", textValue, m_note.m_staff)) {}
-        else if (m_child_name == "type") { m_note.m_type = textValue; }
+        else if (m_child_name == "type") { m_note.m_duration_type = from_string(textValue).value(); }
         else if (m_child_name == "stem") { m_note.m_stem.m_direction = stem_lookup(textValue); }
         else if (get_named_value(m_child_name, "voice", textValue, m_note.m_voice)) {}
     }
@@ -222,7 +223,7 @@ public:
             // Dear god, this is awful, I must find a better way to handle 
             //  'notes' that are really rests.
             m_rest.m_duration = m_note.m_duration;
-            m_rest.m_type = m_note.m_type;
+            m_rest.m_duration_type = m_note.m_duration_type;
             m_rest.m_staff = m_note.m_staff;
             m_rest.m_voice = m_note.m_voice;
             m_rest.m_num_dots = m_note.m_num_dots;

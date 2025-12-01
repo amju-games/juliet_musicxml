@@ -48,21 +48,34 @@ TEST_CASE("Get timed events in one bar, check times", "time_normalizer")
 
 // Convenience functions
 auto make_note(
-  char step, int octave, int alter, int duration_ticks, std::string_view type, bool is_chord = false)
+  char step, int octave, int alter, int duration_ticks, std::string duration_type, bool is_chord = false)
 {
   note n;
   n.m_pitch.m_step = step;
   n.m_pitch.m_octave = octave;
   n.m_pitch.m_alter = alter;
-  n.m_type = type;
+  auto d = from_string(duration_type);
+  if (!d)
+  {
+    std::cout << d.error() << std::endl;
+    REQUIRE(false);
+  }
+  n.m_duration_type = d.value();
   n.m_duration = duration_ticks;
   n.m_is_chord = is_chord;
   return std::make_unique<note>(n);
 }
 
-auto make_rest(int duration_ticks, std::string_view type)
+auto make_rest(int duration_ticks, std::string duration_type)
 {
   rest r;
+  auto d = from_string(duration_type);
+  if (!d)
+  {
+    std::cout << d.error() << std::endl;
+    REQUIRE(false);
+  }
+  r.m_duration_type = d.value();
   r.m_duration = duration_ticks;
   return std::make_unique<rest>(r);
 }
@@ -100,7 +113,7 @@ TEST_CASE("Normalize start times in events", "time_normalizer")
   bar b;
   b.events.emplace_back(make_divisions(8));
   b.events.emplace_back(make_note('C', 3, 0,  8, "quarter"));
-  b.events.emplace_back(make_note('D', 3, 0, 16, "minim"));
+  b.events.emplace_back(make_note('D', 3, 0, 16, "half"));
   b.events.emplace_back(make_divisions(5)); // changing divisions!
   b.events.emplace_back(make_note('E', 3, 0,  5, "quarter"));
   b.events.emplace_back(make_note('F', 3, 0, 20, "whole"));

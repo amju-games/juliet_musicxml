@@ -1,5 +1,6 @@
 #pragma once
 
+#include "duration.h"
 #include "expected.hpp" // TODO <expected>
 #include <map>
 #include <string>
@@ -41,6 +42,10 @@ struct event
   bool m_is_attribute = false;
 };
 
+using p_event = std::unique_ptr<event>;
+
+using event_vec = std::vector<p_event>;
+
 struct non_renderable_event : public event
 {
   non_renderable_event() { m_is_renderable = false; }
@@ -51,6 +56,13 @@ struct non_renderable_event : public event
 struct attribute_event : public event
 {
   attribute_event() { m_is_attribute = true; }
+};
+
+struct composite_event : public event
+{
+  void render(i_renderer&) const override;
+
+  event_vec m_children;
 };
 
 /*
@@ -139,8 +151,9 @@ struct stem
 struct note_rest_base : public event 
 {
   int m_duration = 0; // MusicXML only: Raw duration, in units of prevailing division value.
-  std::string m_type; // e.g. "quarter": is this redundant? 
-    // TODO If not, this should definitely be an enum, not a string
+  // Enum value for xml 'type' string, e.g. "quarter".
+  // This is essential for deciding the glyph for the note or rest.
+  duration m_duration_type; 
 
   int m_voice = 1; 
   int m_num_dots = 0;
@@ -200,10 +213,6 @@ struct forward : public non_renderable_event
   void normalize_time(int& ticks, int& divisions, fraction& time) override;
   std::string get_description() const override;
 };
-
-using p_event = std::unique_ptr<event>;
-
-using event_vec = std::vector<p_event>;
 
 // Sort vec of events, primarily by normalized start time.
 void sort(event_vec& events);
