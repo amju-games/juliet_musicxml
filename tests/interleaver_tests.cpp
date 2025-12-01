@@ -150,7 +150,7 @@ TEST_CASE("P-04 Vertical Content Isolation", "[interleaving][chords]")
   check_event_is_vertical(verticals[0], 2, 1); // 2 note children; not a chord.
   
   vertical* v0_ptr = dynamic_cast<vertical*>(verticals[0].get());
-  REQUIRE(dynamic_cast<note*>(v0_ptr->m_events[0].get()));
-  REQUIRE(dynamic_cast<note*>(v0_ptr->m_events[1].get()));
+  REQUIRE(dynamic_cast<note*>(v0_ptr->m_children[0].get()));
+  REQUIRE(dynamic_cast<note*>(v0_ptr->m_children[1].get()));
 }
 

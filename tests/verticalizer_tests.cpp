@@ -15,7 +15,7 @@ void check_event_is_vertical(const p_event& e, int num_children, int time)
 {
   REQUIRE(dynamic_cast<vertical*>(e.get())); 
   vertical* v = dynamic_cast<vertical*>(e.get());
-  REQUIRE(v->m_events.size() == num_children);
+  REQUIRE(v->m_children.size() == num_children);
   REQUIRE(v->m_normalized_start_time == fraction(time, 1));
 }
 
@@ -24,7 +24,7 @@ void check_event_is_chord(const p_event& e, int num_notes)
 {
   REQUIRE(dynamic_cast<chord*>(e.get()));
   chord* c = dynamic_cast<chord*>(e.get());
-  REQUIRE(c->m_events.size() == num_notes);
+  REQUIRE(c->m_children.size() == num_notes);
   // (Could add a check here that all children are 'note' objects)
 }
 }
@@ -72,7 +72,7 @@ TEST_CASE("V-02 Simple Chord Grouping", "[verticals][chords]")
 
   // 3. Get that child and check it's a chord with 2 notes
   vertical* v_ptr = dynamic_cast<vertical*>(events[0].get());
-  check_event_is_chord(v_ptr->m_events[0], 2);
+  check_event_is_chord(v_ptr->m_children[0], 2);
 }
 
 TEST_CASE("V-03 Mixed Notes and Rests", "[verticals][chords]")
@@ -121,7 +121,7 @@ TEST_CASE("V-04 Complex Sequencing and Chords", "[verticals][chords]")
 
   // 5. Get the child from Vertical 3 and check it's a chord with 2 notes
   vertical* v_ptr = dynamic_cast<vertical*>(events[2].get());
-  check_event_is_chord(v_ptr->m_events[0], 2);
+  check_event_is_chord(v_ptr->m_children[0], 2);
 }
 
 TEST_CASE("V-05 Multi-Chord Vertical", "[verticals][chords]")
@@ -146,7 +146,7 @@ TEST_CASE("V-05 Multi-Chord Vertical", "[verticals][chords]")
 
   // 3. Get the vertical and its children
   vertical* v_ptr = dynamic_cast<vertical*>(events[0].get());
-  auto& children = v_ptr->m_events;
+  auto& children = v_ptr->m_children;
 
   // 4. Check that BOTH children are chords.
   // We can't guarantee the order (Voice 1 chord or Voice 2 chord first).
@@ -159,7 +159,7 @@ TEST_CASE("V-05 Multi-Chord Vertical", "[verticals][chords]")
   // 5. Check that both chords have 2 notes each.
   // We check the sizes in an order-agnostic way.
   bool sizes_are_correct = 
-    (c1->m_events.size() == 2 && c2->m_events.size() == 2);
+    (c1->m_children.size() == 2 && c2->m_children.size() == 2);
   REQUIRE(sizes_are_correct);
 }
 
@@ -218,13 +218,13 @@ TEST_CASE("A-01 Attribute Isolation", "[attributes]")
   
   // Optional detailed check: Verify the type of the child (optional but good).
   vertical* v0_ptr = dynamic_cast<vertical*>(events[0].get());
-  REQUIRE(dynamic_cast<clef_event*>(v0_ptr->m_events[0].get()));
+  REQUIRE(dynamic_cast<clef_event*>(v0_ptr->m_children[0].get()));
 
   // 3. Check Vertical 2: The Rhythmic Event.
   check_event_is_vertical(events[1], 1, 1);
   
   // Optional detailed check: Verify the type of the child.
   vertical* v1_ptr = dynamic_cast<vertical*>(events[1].get());
-  REQUIRE(dynamic_cast<note*>(v1_ptr->m_events[0].get()));
+  REQUIRE(dynamic_cast<note*>(v1_ptr->m_children[0].get()));
 }
 

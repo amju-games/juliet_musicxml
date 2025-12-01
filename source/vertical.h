@@ -12,7 +12,7 @@ struct vertical_render_info
 
 // Vertical: info for rendering plus vec of all renderable events that
 //  are vertically aligned
-struct vertical : public event
+struct vertical : public composite_event
 {
   // Construct vertical by moving a range of events
   vertical(event_vec::iterator first, event_vec::iterator last);
@@ -21,7 +21,6 @@ struct vertical : public event
   void render(i_renderer&) const override;
 
   vertical_render_info m_render_info;
-  event_vec m_events;
 };
 }
 
