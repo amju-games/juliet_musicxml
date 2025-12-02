@@ -63,7 +63,7 @@ private:
     // Similarly for these other attributes, we will create events if they
     //  are non-null.
     clef_event m_clefs;
-    int m_current_clef = 1; // to set staff for clef in above event.
+    int m_current_clef = 1; // to set stave for clef in above event.
 
     time_sig_event m_time_sig;
   
@@ -184,8 +184,8 @@ private:
 public:
     void handleEnter(const XMLElement& element) override 
     {
-        // Default staff for notes and rests
-        m_note.m_staff = m_rest.m_staff = 1;
+        // Default stave for notes and rests
+        m_note.m_stave = m_rest.m_stave = 1;
 
         // Check for chord status
         if (element.FirstChildElement("chord")) { m_note.m_is_chord = true; }
@@ -214,7 +214,7 @@ public:
         else if (get_named_value(m_child_name, "octave", textValue, m_note.m_pitch.m_octave)) {}
         else if (get_named_value(m_child_name, "alter", textValue, m_note.m_pitch.m_alter)) {}
         else if (get_named_value(m_child_name, "duration", textValue, m_note.m_duration)) {}
-        else if (get_named_value(m_child_name, "staff", textValue, m_note.m_staff)) {}
+        else if (get_named_value(m_child_name, xml::STAFF, textValue, m_note.m_stave)) {}
         else if (m_child_name == "type") { m_note.m_duration_type = from_string(textValue).value(); }
         else if (m_child_name == "stem") { m_note.m_stem.m_direction = stem_lookup(textValue); }
         else if (get_named_value(m_child_name, "voice", textValue, m_note.m_voice)) {}
@@ -228,7 +228,7 @@ public:
             //  'notes' that are really rests.
             m_rest.m_duration = m_note.m_duration;
             m_rest.m_duration_type = m_note.m_duration_type;
-            m_rest.m_staff = m_note.m_staff;
+            m_rest.m_stave = m_note.m_stave;
             m_rest.m_voice = m_note.m_voice;
             m_rest.m_num_dots = m_note.m_num_dots;
             

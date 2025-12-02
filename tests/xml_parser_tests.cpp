@@ -114,7 +114,7 @@ TEST_CASE("Parse note: staff", "xml_parser_internals")
   using namespace juliet_musicxml;
   const auto event = parse_event("<note><staff>42</staff></note>");
   const auto* n = dynamic_cast<note*>(event.get());
-  REQUIRE(n->m_staff == 42);
+  REQUIRE(n->m_stave == 42);
 }
 
 TEST_CASE("Parse note: stem dir", "xml_parser_internals")
@@ -159,17 +159,17 @@ TEST_CASE("Parse note, rest, rest, note", "xml_parser")
 
   note* n = dynamic_cast<note*>(bar->m_events[0].get());
   // Expect note and rest staves to default to 1
-  REQUIRE(n->m_staff == 1); 
+  REQUIRE(n->m_stave == 1); 
 
   rest* r = dynamic_cast<rest*>(bar->m_events[1].get());
   REQUIRE(r->m_duration == 5);
-  REQUIRE(r->m_staff == 3);
+  REQUIRE(r->m_stave == 3);
   REQUIRE(r->m_voice == 2);
   REQUIRE(r->m_is_whole_bar == true);
 
   r = dynamic_cast<rest*>(bar->m_events[2].get());
   REQUIRE(r->m_duration == 7);
-  REQUIRE(r->m_staff == 1);
+  REQUIRE(r->m_stave == 1);
   REQUIRE(r->m_voice == 1);
   REQUIRE(r->m_is_whole_bar == false);
 }

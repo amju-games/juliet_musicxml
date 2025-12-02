@@ -87,7 +87,7 @@ struct clef_and_line
   int m_line = 0;
 };
 
-// Clef for each staff: staff numbers are 1-based.
+// Clef for each stave: stave numbers are 1-based.
 // map orders by stave and so is preferable to unordered_map?
 using stave_num_to_clef_map = std::map<int, clef_and_line>; 
 
@@ -129,7 +129,7 @@ struct clef_event : public attribute_event
 struct stave_event : public attribute_event
 {
   int m_num_staves = 1;
-  int m_num_staff_lines = 5;
+  int m_num_stave_lines = 5;
   float get_width() const override { return 0; }
   std::string get_description() const override;
   void render(i_renderer&) const override;
@@ -170,7 +170,7 @@ struct note_rest_base : public event
   // This is used for deciding the glyph for the note or rest.
   duration m_duration_type; 
 
-  int m_staff = 0;  // Used with part index to calc position for rendering
+  int m_stave = 0;  // Used with part index to calc position for rendering
 
   int m_voice = 1; 
   int m_num_dots = 0;
@@ -206,7 +206,7 @@ struct note : public note_rest_base
 
 struct rest : public note_rest_base
 {
-  int m_staff_line = 0;  // Zero means default, else position is specified
+  int m_stave_line = 0;  // Zero means default, else position is specified
     // TODO Might need a separate flag, in case 0 is a valid position.
 
   bool m_is_whole_bar = false; 

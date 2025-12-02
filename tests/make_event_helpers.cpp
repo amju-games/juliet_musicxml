@@ -24,9 +24,9 @@ std::unique_ptr<juliet_musicxml::clef_event> make_clef(int time, std::string sig
 {
   using namespace juliet_musicxml;
   clef_event clef;
-  constexpr int staff = 1; // doesn't matter
+  constexpr int stave = 1; // doesn't matter
   constexpr int line = 0; // doesn't matter 
-  clef.m_clef_map[staff] = clef_and_line { sign, line };  
+  clef.m_clef_map[stave] = clef_and_line { sign, line };  
   clef.m_normalized_start_time = fraction(time, 1);
   return std::make_unique<clef_event>(clef);
 }

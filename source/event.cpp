@@ -56,7 +56,7 @@ std::string note::get_description() const
      << "\tDur: " << m_normalized_duration 
      << " Dur type: " << m_duration_type
      << " Start at: " << m_normalized_start_time 
-     << " Staff: " << m_staff
+     << " Staff: " << m_stave
      << " Voice: " << m_voice
      << " Stem: " << m_stem.to_string();
   return ss.str();
@@ -91,7 +91,7 @@ std::string rest::get_description() const
      << "\tDur: " << m_normalized_duration
      << " Dur type: " << m_duration_type
      << " Start at: " << m_normalized_start_time 
-     << " Staff: " << m_staff
+     << " Stave: " << m_stave
      << " Voice: " << m_voice;
   return ss.str();
 }
@@ -220,9 +220,9 @@ std::string clef_event::get_description() const
 {
   std::stringstream ss;
   ss << "Clefs: ";
-  for (const auto& [staff, clef] : m_clef_map)
+  for (const auto& [stave, clef] : m_clef_map)
   {
-    ss << "(" << staff << ": " << clef.m_sign << " line " << clef.m_line << ") ";
+    ss << "(" << stave << ": " << clef.m_sign << " line " << clef.m_line << ") ";
   }
   return ss.str();
 }
@@ -240,7 +240,7 @@ float clef_event::get_width() const
 std::string stave_event::get_description() const
 {
   std::stringstream ss;
-  ss << "Staves: " << m_num_staves << " lines: " << m_num_staff_lines;
+  ss << "Staves: " << m_num_staves << " lines: " << m_num_stave_lines;
   return ss.str();
 }
 

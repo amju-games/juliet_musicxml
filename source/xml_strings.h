@@ -19,6 +19,7 @@ static constexpr const char* LONG = "long";
 static constexpr const char* MAXIMA = "maxima";
 static constexpr const char* NUMBER = "number";
 static constexpr const char* QUARTER = "quarter";
+static constexpr const char* STAFF = "staff";
 static constexpr const char* WHOLE = "whole";
 }
 }
