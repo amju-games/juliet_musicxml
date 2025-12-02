@@ -9,6 +9,16 @@ void event::normalize_time(int& ticks, int& divisions, fraction& time)
   m_normalized_start_time = time;
 }
 
+float composite_event::get_width() const
+{
+  float w = 0;
+  for (const auto& ch : m_children)
+  {
+    w = std::max(w, ch->get_width());
+  }
+  return w;
+}
+
 void note::normalize_time(int& ticks, int& divs, fraction& norm_time)
 {
   const fraction event_duration(m_duration, divs);
@@ -52,6 +62,11 @@ std::string note::get_description() const
   return ss.str();
 }
 
+float note::get_width() const
+{
+  return 1.f;
+}
+
 void note::render(i_renderer& r) const 
 {
   r.render_note(*this);
@@ -84,6 +99,11 @@ std::string rest::get_description() const
 void rest::render(i_renderer& r) const 
 {
   r.render_rest(*this);
+}
+
+float rest::get_width() const
+{
+  return 1.f;
 }
 
 void backup::normalize_time(int& ticks, int& divs, fraction& norm_time)
@@ -150,6 +170,11 @@ void time_sig_event::render(i_renderer& r) const
   r.render_time_sig(*this);
 }
 
+float time_sig_event::get_width() const
+{
+  return 1.f;
+}
+
 std::string key_sig_event::get_description() const
 {
   std::stringstream ss;
@@ -160,6 +185,11 @@ std::string key_sig_event::get_description() const
 void key_sig_event::render(i_renderer& r) const 
 {
   r.render_key_sig(*this);
+}
+
+float key_sig_event::get_width() const
+{
+  return 1.f;
 }
 
 // TODO Move this keysig stuff
@@ -202,11 +232,21 @@ void clef_event::render(i_renderer& r) const
   r.render_clef(*this);
 }
 
+float clef_event::get_width() const
+{
+  return 1.f;
+}
+
 std::string stave_event::get_description() const
 {
   std::stringstream ss;
   ss << "Staves: " << m_num_staves << " lines: " << m_num_staff_lines;
   return ss.str();
+}
+
+void stave_event::render(i_renderer& r) const 
+{
+  r.render_stave(*this);
 }
 
 void composite_event::render(i_renderer& r) const 

@@ -27,6 +27,11 @@ struct event
   //  backup/forward/divisions events.
   virtual void normalize_time(int& ticks, int& divisions, fraction& time);
 
+  // Get width of this element; for composite elements, the max or accumulated
+  //  width. 
+  // Distance units: 1.0 == distance between two adjacent stave lines.
+  virtual float get_width() const = 0;
+
   // Create description on the fly, because we add more data with each pass.
   virtual std::string get_description() const = 0;
   
@@ -37,7 +42,6 @@ struct event
   int m_part_index = 0; // index into parts in score
   fraction m_normalized_start_time;
   fraction m_normalized_duration; 
-  int m_staff = 0;  // ?
   bool m_is_renderable = true;
   bool m_is_attribute = false;
 };
@@ -50,6 +54,7 @@ struct non_renderable_event : public event
 {
   non_renderable_event() { m_is_renderable = false; }
   void render(i_renderer&) const override {}
+  float get_width() const override { return 0; } 
 };
 
 // Superclass for clefs, time sigs, etc
@@ -61,6 +66,7 @@ struct attribute_event : public event
 struct composite_event : public event
 {
   void render(i_renderer&) const override;
+  float get_width() const override;
 
   event_vec m_children;
 };
@@ -89,12 +95,15 @@ struct time_sig_event : public attribute_event
 {
   fraction m_fraction; // what kind of weird time sigs are there...?
   std::string get_description() const override;
+  float get_width() const override;
   void render(i_renderer&) const override;
 };
 
 struct key_sig_event : public attribute_event
 {
   key_sig m_key_sig = {};
+
+  float get_width() const override;
   std::string get_description() const override;
   void render(i_renderer&) const override;
 
@@ -107,17 +116,23 @@ struct key_sig_event : public attribute_event
 struct clef_event : public attribute_event
 {
   stave_num_to_clef_map m_clef_map;
+
+  float get_width() const override;
   std::string get_description() const override;
   void render(i_renderer&) const override;
 };
 
 // Hmmm this info goes in the info for the current part we are parsing...
 //  but it's not renderable in a vertical. Riiight?
-struct stave_event : public non_renderable_event /* not attribute_event?! */
+// When we 'render' this, we pass info to the renderer, but we don't 
+//  directly write output for it.
+struct stave_event : public attribute_event
 {
   int m_num_staves = 1;
   int m_num_staff_lines = 5;
+  float get_width() const override { return 0; }
   std::string get_description() const override;
+  void render(i_renderer&) const override;
 };
 
 // Number of time units in a crotchet/quarter note.
@@ -152,8 +167,10 @@ struct note_rest_base : public event
 {
   int m_duration = 0; // MusicXML only: Raw duration, in units of prevailing division value.
   // Enum value for xml 'type' string, e.g. "quarter".
-  // This is essential for deciding the glyph for the note or rest.
+  // This is used for deciding the glyph for the note or rest.
   duration m_duration_type; 
+
+  int m_staff = 0;  // Used with part index to calc position for rendering
 
   int m_voice = 1; 
   int m_num_dots = 0;
@@ -182,6 +199,7 @@ struct note : public note_rest_base
   ledger_lines m_ledger_lines;
 
   void normalize_time(int& ticks, int& divisions, fraction& time) override;
+  float get_width() const override;
   std::string get_description() const override;
   void render(i_renderer&) const override;
 };
@@ -189,9 +207,12 @@ struct note : public note_rest_base
 struct rest : public note_rest_base
 {
   int m_staff_line = 0;  // Zero means default, else position is specified
+    // TODO Might need a separate flag, in case 0 is a valid position.
+
   bool m_is_whole_bar = false; 
 
   void normalize_time(int& ticks, int& divisions, fraction& time) override;
+  float get_width() const override;
   std::string get_description() const override;
   void render(i_renderer&) const override;
 };
