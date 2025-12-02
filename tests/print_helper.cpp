@@ -19,8 +19,8 @@ void print_bars(const bar_vec& bars)
 {
   for (const auto& b : bars)
   {
-    std::cout << "Bar: " << b->bar_number << std::endl;
-    print_events(b->events);
+    std::cout << "Bar: " << b->m_bar_number << std::endl;
+    print_events(b->m_events);
   }
 }
 

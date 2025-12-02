@@ -8,11 +8,13 @@ namespace juliet_musicxml
 {
 struct bar 
 {
-  std::string part_id; // ID of part in which this bar lives
-  int bar_number = 1; // There can be a bar #1 in each part;
-    // I.e. part_id + bar_number is the unique ID of this bar.
+  int m_part_index = 0;
+  int m_bar_number = 1; // There can be a bar #1 in each part;
+    // I.e. part_index + bar_number is the unique ID of this bar.
 
-  event_vec events; 
+  void set_part_index(int part_index);
+
+  event_vec m_events; 
 };
 
 using bar_vec = std::vector<std::unique_ptr<bar>>;

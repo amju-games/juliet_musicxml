@@ -7,7 +7,7 @@ namespace juliet_musicxml
 void time_normalizer::normalize_times(
   bar& b, int& current_ticks, int& current_divs, fraction& norm_time)
 {
-  for (const auto& e: b.events) 
+  for (const auto& e: b.m_events) 
   {
     e->normalize_time(current_ticks, current_divs, norm_time);
   } 
@@ -41,7 +41,7 @@ void time_normalizer::normalize_times(score& sc)
       normalize_times(*b, current_ticks, current_divs, norm_time);
 
       // Add unique ID for each event - what's the best way to do this?
-      for (auto& ev : b->events) { ev->set_id(unique_id++); }
+      for (auto& ev : b->m_events) { ev->set_id(unique_id++); }
     }
   }
 }

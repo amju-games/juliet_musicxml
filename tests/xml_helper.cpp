@@ -38,8 +38,8 @@ std::unique_ptr<bar> parse_bar(const std::string& xml_snippet)
 p_event parse_event(const std::string& xml_snippet)
 {
   auto b = parse_bar(xml_snippet);
-  REQUIRE(!b->events.empty());
-  return std::move(b->events[0]);
+  REQUIRE(!b->m_events.empty());
+  return std::move(b->m_events[0]);
 }
 }
 

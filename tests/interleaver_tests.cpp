@@ -13,7 +13,7 @@ void check_event_is_vertical(const p_event& e, int num_children, int time);
 std::unique_ptr<bar> make_bar(event_vec&& events, int bar_length = 4)
 {
   bar b;
-  b.events = std::move(events);
+  b.m_events = std::move(events);
   return std::make_unique<bar>(std::move(b));
 }
 }

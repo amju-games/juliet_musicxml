@@ -18,7 +18,7 @@ event_vec interleaver::interleave_score_parts(juliet_musicxml::score& s)
     // Iterate over each bar in this part's bar_vec
     for (auto& bar_ptr : bar_list)
     {   
-      for (auto& event_ptr : bar_ptr->events)
+      for (auto& event_ptr : bar_ptr->m_events)
       {   
         event_ptr->m_part_index = part_index;
           

@@ -140,27 +140,27 @@ public:
 
         if (m_staves.m_num_staves != 0)
         {
-          data.events.emplace_back(std::make_unique<stave_event>(m_staves));
+          data.m_events.emplace_back(std::make_unique<stave_event>(m_staves));
         }
 
         if (m_divisions.m_num_divisions != 0)
         { 
-          data.events.emplace_back(std::make_unique<divisions>(m_divisions));
+          data.m_events.emplace_back(std::make_unique<divisions>(m_divisions));
         }
 
         if (!m_clefs.m_clef_map.empty())
         {
-          data.events.emplace_back(std::make_unique<clef_event>(m_clefs));
+          data.m_events.emplace_back(std::make_unique<clef_event>(m_clefs));
         }
 
         if (m_key_sig_is_set)
         {
-          data.events.emplace_back(std::make_unique<key_sig_event>(m_key_sig));
+          data.m_events.emplace_back(std::make_unique<key_sig_event>(m_key_sig));
         }
 
         if (m_time_sig.m_fraction.denom != 0)
         {
-          data.events.emplace_back(std::make_unique<time_sig_event>(m_time_sig));
+          data.m_events.emplace_back(std::make_unique<time_sig_event>(m_time_sig));
         }
     }    
 };
@@ -232,11 +232,11 @@ public:
             m_rest.m_voice = m_note.m_voice;
             m_rest.m_num_dots = m_note.m_num_dots;
             
-            data.events.emplace_back(std::make_unique<rest>(m_rest));
+            data.m_events.emplace_back(std::make_unique<rest>(m_rest));
         }
         else
         {
-            data.events.emplace_back(std::make_unique<note>(m_note));
+            data.m_events.emplace_back(std::make_unique<note>(m_note));
         }
     }
 };
@@ -257,7 +257,7 @@ public:
     }
 
     void handleExit(const XMLElement& element, bar& data) override {
-        data.events.emplace_back(std::make_unique<backup>(m_backup));
+        data.m_events.emplace_back(std::make_unique<backup>(m_backup));
     }
 };
 
@@ -278,7 +278,7 @@ public:
 
     void handleExit(const XMLElement& element, bar& data) override 
     {
-        data.events.emplace_back(std::make_unique<forward>(m_forward));
+        data.m_events.emplace_back(std::make_unique<forward>(m_forward));
     }
 };
 
@@ -390,9 +390,9 @@ expected_score parse_xml_doc(XMLDocument& doc)
 
             // TODO We want each event to know which part it's in.
             // So should each event point back to its owning bar? Or part?
-            b->part_index = part_index; 
+            b->set_part_index(part_index); 
 
-            b->bar_number = bar_number++;
+            b->m_bar_number = bar_number++;
             scoreData.add_bar_for_part(part_index, b); 
         }
     }
