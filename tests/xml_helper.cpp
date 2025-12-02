@@ -28,8 +28,8 @@ std::unique_ptr<bar> parse_bar(const std::string& xml_snippet)
   auto s = parse_score(xml_snippet);
   REQUIRE(!s.m_parts.empty());
   const auto it = s.m_parts.begin();
-  REQUIRE(it->first == "THE+PART");
-  auto& bars = it->second;
+  REQUIRE(it->m_part_name == "THE+PART");
+  auto& bars = it->m_bars;
   REQUIRE(!bars.empty());
   return std::move(bars[0]);
 }

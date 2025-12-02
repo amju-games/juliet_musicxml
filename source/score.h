@@ -6,27 +6,44 @@
 
 namespace juliet_musicxml
 {
-// Parts in a score: each part ID maps to a sequence of bars.
-// Using vector so we can index into parts.
-using part = std::pair<std::string, bar_vec>;
-using part_vec = std::vector<part>;
+struct part
+{
+  std::string m_part_name;
+  bar_vec m_bars;
+};
 
 // Represents the raw score parts.
 struct score 
 {
   // Map part ID to sequence of bars. 
+  using part_vec = std::vector<part>;
   part_vec m_parts;
 
-  part& add_new_part(std::string part_name, bar_vec& bars)
+  // Add bar for a part that has been added with add_new_part.
+  void add_bar_for_part(int part_index, std::unique_ptr<bar>& b)
   {
-    m_parts.emplace_back(std::make_pair(part_name, std::move(bars)));
-    return m_parts.back();
+    assert(part_index < m_parts.size());
+    m_parts[part_index].m_bars.emplace_back(std::move(b));
   }
 
-  part& add_new_part(std::string part_name)
+  // Add a new part
+  // TODO: check if it's an existing part
+  // Return part index for the part.
+  int add_new_part(std::string part_name)
   {
-    m_parts.emplace_back(std::make_pair(part_name, bar_vec()));
-    return m_parts.back();
+    part p;
+    p.m_part_name = part_name;
+    m_parts.emplace_back(std::move(p));
+    return static_cast<int>(m_parts.size()) - 1;
+  }
+
+  int add_new_part(std::string part_name, bar_vec& bars)
+  {
+    part p;
+    p.m_part_name = part_name;
+    p.m_bars = std::move(bars);
+    m_parts.emplace_back(std::move(p));
+    return static_cast<int>(m_parts.size() - 1);
   }
 };
 }

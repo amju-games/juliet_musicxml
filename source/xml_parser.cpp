@@ -134,6 +134,10 @@ public:
 
     void handleExit(const XMLElement& element, bar& data) override 
     {
+        // This order is partly so the renderer gets the info in the 
+        //  order it needs (we need to know about staves first). 
+        // Also for how the music looks, (we want key sig before time sig).
+
         if (m_staves.m_num_staves != 0)
         {
           data.events.emplace_back(std::make_unique<stave_event>(m_staves));
@@ -374,7 +378,7 @@ expected_score parse_xml_doc(XMLDocument& doc)
         const char* partId = partElem->Attribute("id");
         if (!partId) continue;
         
-        auto& part = scoreData.add_new_part(partId);
+        int part_index = scoreData.add_new_part(partId);
 
         // Iterate over all bars in the part.
         int bar_number = 1;
@@ -384,12 +388,12 @@ expected_score parse_xml_doc(XMLDocument& doc)
         {
             std::unique_ptr<bar> b = std::make_unique<bar>(parse_bar(measureNode));
 
-            // TODO Probably not necessary at all; if it is, shouldn't this be 
-            //  part index?
-            b->part_id = partId; // add the part ID to the bar 
+            // TODO We want each event to know which part it's in.
+            // So should each event point back to its owning bar? Or part?
+            b->part_index = part_index; 
 
             b->bar_number = bar_number++;
-            part.second.emplace_back(std::move(b));
+            scoreData.add_bar_for_part(part_index, b); 
         }
     }
     return std::move(scoreData);
