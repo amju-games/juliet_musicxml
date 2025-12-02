@@ -4,7 +4,6 @@
 #include "event.h"
 #include "make_event_helpers.h"
 #include "print_helper.h"
-#include "test_event.h"
 #include "verticalizer.h"
 
 namespace juliet_musicxml
@@ -170,24 +169,30 @@ TEST_CASE("Group verticals", "verticalizer")
   using namespace juliet_musicxml;
 
   event_vec events;
-  events.emplace_back(std::make_unique<test_event>("G",      fraction(0, 1)));
-  events.emplace_back(std::make_unique<test_event>("A",      fraction(1, 1)));
-  events.emplace_back(std::make_unique<test_event>("C (CH)", fraction(1, 1)));
-  events.emplace_back(std::make_unique<test_event>("E (CH)", fraction(1, 1)));
-  events.emplace_back(std::make_unique<test_event>("G (CH)", fraction(1, 1)));
-  events.emplace_back(std::make_unique<test_event>("A",      fraction(2, 1)));
-  events.emplace_back(std::make_unique<test_event>("C (CH)", fraction(2, 1)));
-  events.emplace_back(std::make_unique<test_event>("E (CH)", fraction(2, 1)));
-  events.emplace_back(std::make_unique<test_event>("B",      fraction(3, 1)));
+  events.emplace_back(make_note("G", 0, 1)); // step, time, voice 
+  events.emplace_back(make_note("A", 1, 1)); // 4-note chord 
+  events.emplace_back(make_note("C", 1, 1));
+  events.emplace_back(make_note("E", 1, 1));
+  events.emplace_back(make_note("G", 1, 1));
+  events.emplace_back(make_note("A", 2, 1)); // 3-note chord
+  events.emplace_back(make_note("C", 2, 1));
+  events.emplace_back(make_note("E", 2, 1));
+  events.emplace_back(make_note("B", 3, 1));
 
   verticalizer v;
   v.group_verticals(events);
 
   REQUIRE(events.size() == 4);
-  check_event_is_vertical(events[0], 1, 0);
-  check_event_is_vertical(events[1], 4, 1);
-  check_event_is_vertical(events[2], 3, 2);
+  check_event_is_vertical(events[0], 1, 0); // event, num children, time
+  check_event_is_vertical(events[1], 1, 1);
+  check_event_is_vertical(events[2], 1, 2);
   check_event_is_vertical(events[3], 1, 3);
+  chord* ch1 = dynamic_cast<chord*>(dynamic_cast<vertical*>(events[1].get())->m_children[0].get());
+  REQUIRE(ch1);
+  REQUIRE(ch1->m_children.size() == 4);
+  chord* ch2 = dynamic_cast<chord*>(dynamic_cast<vertical*>(events[2].get())->m_children[0].get());
+  REQUIRE(ch2);
+  REQUIRE(ch2->m_children.size() == 3);
 }
 
 // Attributes with same start time as notes etc should get put into
