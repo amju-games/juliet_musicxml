@@ -56,7 +56,7 @@ std::string note::get_description() const
      << "\tDur: " << m_normalized_duration 
      << " Dur type: " << m_duration_type
      << " Start at: " << m_normalized_start_time 
-     << " Staff: " << m_stave
+     << " Stave: " << m_stave
      << " Voice: " << m_voice
      << " Stem: " << m_stem.to_string();
   return ss.str();
@@ -222,7 +222,7 @@ std::string clef_event::get_description() const
   ss << "Clefs: ";
   for (const auto& [stave, clef] : m_clef_map)
   {
-    ss << "(" << stave << ": " << clef.m_sign << " line " << clef.m_line << ") ";
+    ss << "(stave:" << stave << ": " << to_string(clef).value() << ") ";
   }
   return ss.str();
 }
@@ -240,13 +240,30 @@ float clef_event::get_width() const
 std::string stave_event::get_description() const
 {
   std::stringstream ss;
-  ss << "Staves: " << m_num_staves << " lines: " << m_num_stave_lines;
+  ss << "STAVES for part " << m_part_index << ": num staves: " << m_num_staves << " lines: " << m_num_stave_lines;
   return ss.str();
 }
 
 void stave_event::render(i_renderer& r) const 
 {
   r.render_stave(*this);
+}
+
+float bar_line_event::get_width() const 
+{
+  return 1.f; // including a bit of space on either side
+}
+
+std::string bar_line_event::get_description() const 
+{
+  std::stringstream ss;
+  ss << "Bar line for part " << m_part_index << " (bar: " << m_bar_number << ")";
+  return ss.str();
+}
+
+void bar_line_event::render(i_renderer& r) const 
+{
+  r.render_bar_line(*this);
 }
 
 void composite_event::render(i_renderer& r) const 

@@ -1,10 +1,11 @@
 #pragma once
 
-#include "duration.h"
-#include "expected.hpp" // TODO <expected>
 #include <map>
 #include <string>
 #include <vector>
+#include "clef.h"
+#include "duration.h"
+#include "expected.hpp" // TODO <expected>
 #include "fraction.h"
 #include "key_sig.h"
 #include "pitch.h"
@@ -71,25 +72,14 @@ struct composite_event : public event
   event_vec m_children;
 };
 
-/*
-enum class clef_sign
+struct clef_event : public attribute_event
 {
-  CLEF_NONE,
-  CLEF_TREBLE,
-  CLEF_BASS,
-  // TODO
-};
-*/
+  stave_num_to_clef_map m_clef_map;
 
-struct clef_and_line
-{
-  std::string m_sign;
-  int m_line = 0;
+  float get_width() const override;
+  std::string get_description() const override;
+  void render(i_renderer&) const override;
 };
-
-// Clef for each stave: stave numbers are 1-based.
-// map orders by stave and so is preferable to unordered_map?
-using stave_num_to_clef_map = std::map<int, clef_and_line>; 
 
 struct time_sig_event : public attribute_event
 {
@@ -113,15 +103,6 @@ struct key_sig_event : public attribute_event
   bool set_from_num_fifths(int num_fifths);
 };
 
-struct clef_event : public attribute_event
-{
-  stave_num_to_clef_map m_clef_map;
-
-  float get_width() const override;
-  std::string get_description() const override;
-  void render(i_renderer&) const override;
-};
-
 // Hmmm this info goes in the info for the current part we are parsing...
 //  but it's not renderable in a vertical. Riiight?
 // When we 'render' this, we pass info to the renderer, but we don't 
@@ -131,6 +112,42 @@ struct stave_event : public attribute_event
   int m_num_staves = 1;
   int m_num_stave_lines = 5;
   float get_width() const override { return 0; }
+  std::string get_description() const override;
+  void render(i_renderer&) const override;
+};
+
+// Add this to the front of event_vec for each part, so it can tell the 
+//  renderer what to expect. After interleaving, the renderer should get
+//  all part events, followed by stave events, (but these are optional
+//  in MusicXML?)
+struct part_event : public event
+{
+  // part_index lives in every event already!
+  //int m_part_index; // the index in all events which belong to this part.
+  std::string m_part_id; // not sure we need this
+  std::string m_name; // Text we render at the left edge of the first line
+    // to identify this part.
+    // NB Perhaps should be a more specific string type.
+  std::string m_short_name; // For lines after line 1
+
+  // Scale for all glyphs in the part. (Perhaps also height of stave line
+  //  scales with this too. But width of stave wouldn't be different.)
+  float m_scale = 1.0f; 
+
+  float get_width() const override;
+  std::string get_description() const override;
+  void render(i_renderer&) const override;
+};
+
+// We add these at the end of every bar, unless a special bar line is
+//  specified in the xml. The line on the left hand edge of a new line
+//  of parts is handled separately, there isn't a corresponding one of
+//  these... right? But there would be for a repeat-start - that wouldn't
+//  be at the page edge tho.
+struct bar_line_event : public event
+{
+  // TODO line type
+  float get_width() const override;
   std::string get_description() const override;
   void render(i_renderer&) const override;
 };
@@ -170,7 +187,8 @@ struct note_rest_base : public event
   // This is used for deciding the glyph for the note or rest.
   duration m_duration_type; 
 
-  int m_stave = 0;  // Used with part index to calc position for rendering
+  int m_stave = 0;  // Used with part index to calc position for rendering; 
+    // zero-based.
 
   int m_voice = 1; 
   int m_num_dots = 0;

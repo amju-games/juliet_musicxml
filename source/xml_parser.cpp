@@ -43,8 +43,8 @@ bool get_named_value(
 
 stem::direction stem_lookup(const std::string str)
 {
-  if (str == "up") return stem::direction::STEM_UP;
-  if (str == "down") return stem::direction::STEM_DOWN;
+  if (str == xml::UP) return stem::direction::STEM_UP;
+  if (str == xml::DOWN) return stem::direction::STEM_DOWN;
   return stem::direction::STEM_NONE;
 }
 }
@@ -56,14 +56,17 @@ class AttributesHandler : public ElementHandler
 private:
     std::string m_child_name;
 
-    // set to non-zero if we parse a divisions element, and we will 
+    // Set to non-zero if we parse a divisions element, and we will 
     //  then create a divisions event on exiting this attributes element.
     divisions m_divisions; 
 
     // Similarly for these other attributes, we will create events if they
     //  are non-null.
-    clef_event m_clefs;
-    int m_current_clef = 1; // to set stave for clef in above event.
+
+    // This maps one-based stave number to xml 'sign and line' clef definition.
+    // We convert that into a clef_sign enum later if the map is non-empty.
+    std::map<int, clef_and_line> m_clef_and_line_map;
+    int m_current_clef = 1; // default stave for clef in above event.
 
     time_sig_event m_time_sig;
   
@@ -81,14 +84,22 @@ private:
         }
     }
 
+    // Convert olde-timee XML clef sign and line map into a clef_event
+    auto make_clef_event()
+    {
+      clef_event ce;
+      for (const auto& [stave_1_based, clef_info] : m_clef_and_line_map)
+      {
+        ce.m_clef_map[stave_1_based - 1] = get_clef_sign(clef_info);
+      }
+      return std::make_unique<clef_event>(ce);
+    }
+
 public:  
     void handleEnter(const XMLElement& element) override 
     { 
         m_divisions.m_num_divisions = 0;
         m_time_sig.m_fraction = fraction(0, 0); // 0/0 means not set
-        m_clefs.m_clef_map.clear();
-        m_current_clef = 1;
-        m_key_sig_is_set = false;
         m_staves.m_num_staves = 0;
     }
 
@@ -96,7 +107,7 @@ public:
     { 
         m_child_name = element.Name(); 
 
-        if (m_child_name == "clef")
+        if (m_child_name == xml::CLEF)
         {
             HandleClefElement(element);
         }
@@ -105,27 +116,36 @@ public:
     void handleText(const XMLText& text) override 
     {
         const std::string textValue = text.Value();
-        if (get_named_value(m_child_name, "beats", textValue, m_time_sig.m_fraction.num)) {}
-        else if (get_named_value(m_child_name, "beat-type", textValue, m_time_sig.m_fraction.denom)) {}
-        else if (get_named_value(m_child_name, "staves", textValue, m_staves.m_num_staves)) {}
-        else if (get_named_value(m_child_name, "divisions", textValue, m_divisions.m_num_divisions)) {}
-        else if (m_child_name == "sign") 
+        if (get_named_value(m_child_name, xml::BEATS, textValue, m_time_sig.m_fraction.num)) {}
+        else if (get_named_value(m_child_name, xml::BEAT_TYPE, textValue, m_time_sig.m_fraction.denom)) {}
+        else if (get_named_value(m_child_name, xml::STAVES, textValue, m_staves.m_num_staves)) {}
+        else if (get_named_value(m_child_name, xml::DIVISIONS, textValue, m_divisions.m_num_divisions)) {}
+        else if (m_child_name == xml::SIGN) 
         { 
-            m_clefs.m_clef_map[m_current_clef].m_sign = textValue; 
+            m_clef_and_line_map[m_current_clef].m_sign = textValue; 
         }
-        else if (m_child_name == "line")
+        else if (m_child_name == xml::LINE)
         {
             int line_num = 0;
-            if (get_named_value(m_child_name, "line", textValue, line_num))
+            if (get_named_value(m_child_name, xml::LINE, textValue, line_num))
             {
                 // Will create entry in map if it doesn't exist
-                m_clefs.m_clef_map[m_current_clef].m_line = line_num;
+                m_clef_and_line_map[m_current_clef].m_line = line_num;
             }
         }
-        else if (m_child_name == "fifths")
+        else if (m_child_name == xml::CLEF_OCTAVE_CHANGE)
+        {
+            int octave_change = 0;
+            if (get_named_value(m_child_name, xml::CLEF_OCTAVE_CHANGE, textValue, octave_change))
+            {
+                // Will create entry in map if it doesn't exist
+                m_clef_and_line_map[m_current_clef].m_octave_change = octave_change;
+            }
+        }
+        else if (m_child_name == xml::FIFTHS)
         { 
             int num_fifths = 0;
-            if (get_named_value(m_child_name, "fifths", textValue, num_fifths))
+            if (get_named_value(m_child_name, xml::FIFTHS, textValue, num_fifths))
             {
                m_key_sig_is_set = m_key_sig.set_from_num_fifths(num_fifths);
             }  
@@ -148,9 +168,11 @@ public:
           data.m_events.emplace_back(std::make_unique<divisions>(m_divisions));
         }
 
-        if (!m_clefs.m_clef_map.empty())
+        if (!m_clef_and_line_map.empty())
         {
-          data.m_events.emplace_back(std::make_unique<clef_event>(m_clefs));
+          // We have some clef info - convert to clef_sign enums and
+          //  create clef event.
+          data.m_events.emplace_back(make_clef_event());
         }
 
         if (m_key_sig_is_set)
@@ -177,18 +199,15 @@ private:
         m_is_rest = true;
 
         // <rest> element can have "measure" attribute, for whole-bar rest.
-        const char* measure_text = element.Attribute("measure");
-        m_rest.m_is_whole_bar = (measure_text && std::string(measure_text) == "yes");
+        const char* measure_text = element.Attribute(xml::MEASURE);
+        m_rest.m_is_whole_bar = (measure_text && std::string(measure_text) == xml::YES);
     }
 
 public:
     void handleEnter(const XMLElement& element) override 
     {
-        // Default stave for notes and rests
-        m_note.m_stave = m_rest.m_stave = 1;
-
         // Check for chord status
-        if (element.FirstChildElement("chord")) { m_note.m_is_chord = true; }
+        if (element.FirstChildElement(xml::CHORD)) { m_note.m_is_chord = true; }
     }
 
     void handleChildEnter(const XMLElement& element) override
@@ -196,13 +215,13 @@ public:
         const std::string name = element.Name();
 
         // Skip the empty <chord/> 
-        if (name != "chord") //// rest might not be empty!!!! //// && name != "rest") 
+        if (name != xml::CHORD) 
         { 
             m_child_name = name; 
         }
 
         // ..but do check for rest "measure" attrib
-        if (name == "rest")
+        if (name == xml::REST)
         {
             HandleRestElement(element); 
         }
@@ -210,11 +229,14 @@ public:
 
     void handleText(const XMLText& text) override {
         const std::string textValue = text.Value();
-        if (m_child_name == "step") { m_note.m_pitch.m_step = textValue.empty() ? '\0' : textValue[0]; }
+        if (m_child_name == xml::STEP) { m_note.m_pitch.m_step = textValue.empty() ? '\0' : textValue[0]; }
         else if (get_named_value(m_child_name, "octave", textValue, m_note.m_pitch.m_octave)) {}
         else if (get_named_value(m_child_name, "alter", textValue, m_note.m_pitch.m_alter)) {}
         else if (get_named_value(m_child_name, "duration", textValue, m_note.m_duration)) {}
-        else if (get_named_value(m_child_name, xml::STAFF, textValue, m_note.m_stave)) {}
+        else if (get_named_value(m_child_name, xml::STAFF, textValue, m_note.m_stave)) 
+        {
+          m_note.m_stave--; // Convert one-based xml value to zero-based index.
+        }
         else if (m_child_name == "type") { m_note.m_duration_type = from_string(textValue).value(); }
         else if (m_child_name == "stem") { m_note.m_stem.m_direction = stem_lookup(textValue); }
         else if (get_named_value(m_child_name, "voice", textValue, m_note.m_voice)) {}
@@ -236,6 +258,11 @@ public:
         }
         else
         {
+            auto exp = m_note.m_pitch.calc_midi_pitch();
+            if (exp)
+            {
+              m_note.m_pitch.m_midi_pitch = exp.value();
+            } // else log error?
             data.m_events.emplace_back(std::make_unique<note>(m_note));
         }
     }

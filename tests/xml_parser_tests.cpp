@@ -28,7 +28,7 @@ TEST_CASE("Parse simple xml file example", "xml_parser")
   REQUIRE(dynamic_cast<clef_event*>(bar->m_events[1].get())); 
   const auto* clefs = dynamic_cast<clef_event*>(bar->m_events[1].get());
   REQUIRE(clefs->m_clef_map.size() == 1);
-  REQUIRE(clefs->m_clef_map.at(1).m_sign == "G");
+  REQUIRE(clefs->m_clef_map.at(0) == clef_sign::CLEF_TREBLE); // clef numbers start at 0
   const auto* time_sig = dynamic_cast<time_sig_event*>(bar->m_events[2].get());
   REQUIRE(time_sig->m_fraction.num == 4);
   REQUIRE(time_sig->m_fraction.denom == 4);
@@ -94,6 +94,44 @@ TEST_CASE("Parse attribs: divisions", "xml_parser internals")
   REQUIRE(divs->m_num_divisions == 7);
 }
 
+TEST_CASE("Parse attribs: vocal tenor clef", "xml_parser internals")
+{
+  using namespace juliet_musicxml;
+  const auto event = parse_event(R"(
+    <attributes>
+      <clef number="1"><sign>G</sign><line>2</line><clef-octave-change>-1</clef-octave-change></clef>
+      <clef number="2"><sign>G</sign><line>2</line></clef>
+    </attributes>
+  )");
+
+  const auto* clefs = dynamic_cast<clef_event*>(event.get());
+  REQUIRE(clefs->m_clef_map.size() == 2);
+
+  // Stave key into clef map is zero-based, 
+  //  (not one-based, that's just in the xml).
+  REQUIRE(clefs->m_clef_map.at(0) == clef_sign::CLEF_VOCAL_TENOR); 
+  REQUIRE(clefs->m_clef_map.at(1) == clef_sign::CLEF_TREBLE); 
+}
+
+TEST_CASE("Parse attribs: alto and tenor clefs", "xml_parser internals")
+{
+  using namespace juliet_musicxml;
+  const auto event = parse_event(R"(
+    <attributes>
+      <clef number="1"><sign>C</sign><line>4</line></clef>
+      <clef number="2"><sign>C</sign><line>3</line></clef>
+    </attributes>
+  )");
+
+  const auto* clefs = dynamic_cast<clef_event*>(event.get());
+  REQUIRE(clefs->m_clef_map.size() == 2);
+
+  // Stave key into clef map is zero-based, 
+  //  (not one-based, that's just in the xml).
+  REQUIRE(clefs->m_clef_map.at(0) == clef_sign::CLEF_TENOR); 
+  REQUIRE(clefs->m_clef_map.at(1) == clef_sign::CLEF_ALTO);
+}
+
 TEST_CASE("Parse attribs: clefs", "xml_parser internals")
 {
   using namespace juliet_musicxml;
@@ -103,10 +141,9 @@ TEST_CASE("Parse attribs: clefs", "xml_parser internals")
 
   const auto* clefs = dynamic_cast<clef_event*>(event.get());
   REQUIRE(clefs->m_clef_map.size() == 2);
-  REQUIRE(clefs->m_clef_map.at(1).m_sign == "F");
-  REQUIRE(clefs->m_clef_map.at(1).m_line == 4);
-  REQUIRE(clefs->m_clef_map.at(2).m_sign == "G");
-  REQUIRE(clefs->m_clef_map.at(2).m_line == 2);
+  REQUIRE(clefs->m_clef_map.at(0) == clef_sign::CLEF_BASS); // clef map is zero-based, 
+    // (not one-based, that's just in the xml).
+  REQUIRE(clefs->m_clef_map.at(1) == clef_sign::CLEF_TREBLE);
 }
 
 TEST_CASE("Parse note: staff", "xml_parser_internals")
@@ -114,7 +151,10 @@ TEST_CASE("Parse note: staff", "xml_parser_internals")
   using namespace juliet_musicxml;
   const auto event = parse_event("<note><staff>42</staff></note>");
   const auto* n = dynamic_cast<note*>(event.get());
-  REQUIRE(n->m_stave == 42);
+
+  // MusicXML staves are all one-based, but we want them zero-based, so 
+  //  subtract 1 from the xml value.
+  REQUIRE(n->m_stave == 41);
 }
 
 TEST_CASE("Parse note: stem dir", "xml_parser_internals")
@@ -131,6 +171,30 @@ TEST_CASE("Parse note: voice", "xml_parser_internals")
   const auto event = parse_event("<note><voice>23</voice></note>");
   const auto* n = dynamic_cast<note*>(event.get());
   REQUIRE(n->m_voice == 23);
+}
+
+TEST_CASE("Parse note: pitch", "xml_parser_internals")
+{
+  using namespace juliet_musicxml;
+
+  {
+    // Middle C 
+    const auto event = parse_event("<note><step>C</step><octave>4</octave></note>");
+    const auto* n = dynamic_cast<note*>(event.get());
+    REQUIRE(n->m_pitch.m_midi_pitch == 60);
+  }
+
+  {
+    const auto event = parse_event("<note><step>D</step><octave>4</octave></note>");
+    const auto* n = dynamic_cast<note*>(event.get());
+    REQUIRE(n->m_pitch.m_midi_pitch == 62);
+  }
+
+  {
+    const auto event = parse_event("<note><step>E</step><octave>5</octave><alter>-1</alter></note>");
+    const auto* n = dynamic_cast<note*>(event.get());
+    REQUIRE(n->m_pitch.m_midi_pitch == 75);
+  }
 }
 
 TEST_CASE("Parse note: alter", "xml_parser_internals")
@@ -158,18 +222,18 @@ TEST_CASE("Parse note, rest, rest, note", "xml_parser")
   REQUIRE(dynamic_cast<note*>(bar->m_events[3].get())); // make sure flag is reset
 
   note* n = dynamic_cast<note*>(bar->m_events[0].get());
-  // Expect note and rest staves to default to 1
-  REQUIRE(n->m_stave == 1); 
+  // Expect note and rest staves to default to 0, converting from one- to zero-based.
+  REQUIRE(n->m_stave == 0); 
 
   rest* r = dynamic_cast<rest*>(bar->m_events[1].get());
   REQUIRE(r->m_duration == 5);
-  REQUIRE(r->m_stave == 3);
+  REQUIRE(r->m_stave == 2); // Converted from one- to zero-based index
   REQUIRE(r->m_voice == 2);
   REQUIRE(r->m_is_whole_bar == true);
 
   r = dynamic_cast<rest*>(bar->m_events[2].get());
   REQUIRE(r->m_duration == 7);
-  REQUIRE(r->m_stave == 1);
+  REQUIRE(r->m_stave == 0); // Default, zero-based
   REQUIRE(r->m_voice == 1);
   REQUIRE(r->m_is_whole_bar == false);
 }
