@@ -26,6 +26,8 @@ struct pitch
   int m_alter = 0; // -1 for flat, etc. Seems redundant but possibly useful.
     // TODO Also can be fractional for microtones, not supporting this.
 
+  int m_midi_pitch = 60;
+
   expected_midi_pitch calc_midi_pitch() const;
 
   std::string to_string() const; // get readable pitch name for info

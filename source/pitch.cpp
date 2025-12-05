@@ -27,7 +27,7 @@ expected_midi_pitch pitch::calc_midi_pitch() const
   assert(step < 7);
   int pitch = PITCHES[step];
   pitch += m_alter;
-  pitch += 12 * (m_octave + 2);
+  pitch += 12 * (m_octave + 1);
   if (pitch < 0)
   {
     return tl::unexpected(pitch_error::PITCH_TOO_LOW);

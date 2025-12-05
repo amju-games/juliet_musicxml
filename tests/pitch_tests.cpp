@@ -53,28 +53,28 @@ TEST_CASE("Calc midi pitch - succeed", "pitch")
 
   p.m_step = 'g';
   p.m_alter = 1;
-  p.m_octave = 3;
+  p.m_octave = 4;
   auto r = p.calc_midi_pitch();
   REQUIRE(r);
   REQUIRE(r.value() == 68);
 
   p.m_step = 'A';
-  p.m_alter = -2;
-  p.m_octave = 2;
+  p.m_alter = 0;
+  p.m_octave = 3;
   r = p.calc_midi_pitch();
   REQUIRE(r);
-  REQUIRE(r.value() == 55);
+  REQUIRE(r.value() == 57);
 
   p.m_step = 'B';
   p.m_alter = 0;
-  p.m_octave = 5;
+  p.m_octave = 4;
   r = p.calc_midi_pitch();
   REQUIRE(r);
-  REQUIRE(r.value() == 95);
+  REQUIRE(r.value() == 71);
 
   p.m_step = 'c';
   p.m_alter = 2;
-  p.m_octave = 4;
+  p.m_octave = 5;
   r = p.calc_midi_pitch();
   REQUIRE(r);
   REQUIRE(r.value() == 74);
@@ -84,14 +84,14 @@ TEST_CASE("Calc midi pitch - succeed", "pitch")
   p.m_octave = 6;
   r = p.calc_midi_pitch();
   REQUIRE(r);
-  REQUIRE(r.value() == 97);
+  REQUIRE(r.value() == 85);
 
   p.m_step = 'E';
   p.m_alter = 0;
-  p.m_octave = 4;
+  p.m_octave = 3;
   r = p.calc_midi_pitch();
   REQUIRE(r);
-  REQUIRE(r.value() == 76);
+  REQUIRE(r.value() == 52);
 }
 
 TEST_CASE("Edges of range", "pitch")
@@ -101,7 +101,7 @@ TEST_CASE("Edges of range", "pitch")
 
   p.m_step = 'c';
   p.m_alter = 0;
-  p.m_octave = -2;
+  p.m_octave = -1;
   auto r = p.calc_midi_pitch();
   REQUIRE(r);
   REQUIRE(r.value() == 0);
@@ -113,7 +113,7 @@ TEST_CASE("Edges of range", "pitch")
 
   p.m_step = 'g';
   p.m_alter = 0;
-  p.m_octave = 8;
+  p.m_octave = 9;
   r = p.calc_midi_pitch();
   REQUIRE(r);
   REQUIRE(r.value() == 127);
