@@ -18,7 +18,7 @@ vertical::vertical(event_vec::iterator first, event_vec::iterator last)
 std::string vertical::get_description() const
 {
   std::stringstream ss;
-  ss << "VERTICAL: (start time: " << m_normalized_start_time << ")" << std::endl;
+  ss << "VERTICAL: (x: " << m_info.m_x_offset << ", start time: " << m_normalized_start_time << ")" << std::endl;
   for (const auto& e: m_children)
   {
     ss << "  " << e->get_description() << std::endl;

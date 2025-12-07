@@ -25,6 +25,7 @@ enum class key_sig
   KEYSIG_7_FLAT,
 };
 
+// Description string, not final output string.
 std::string to_string(key_sig ks);
 }
 

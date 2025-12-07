@@ -18,12 +18,6 @@ std::string chord::get_description() const
 void chord::render(i_renderer& r) const 
 {
   r.render_chord(*this);
-
-  // Just temporary  TODO TEMP TEST
-  for (const auto& child : m_children) 
-  {
-    child->render(r); // Recursively render children
-  }
 }
 }
 

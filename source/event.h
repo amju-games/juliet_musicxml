@@ -174,6 +174,7 @@ struct stem
   std::string to_string() const;
 
   direction m_direction;
+  // Do we want this here?
   float m_length = 1.0f; // stem length for a standard crotchet
 };
 
@@ -198,10 +199,20 @@ struct note_rest_base : public event
 
 struct ledger_lines
 {
-  enum class direction { ABOVE, BELOW };
-  int m_num_ledger_lines = 0;
-  float m_width = 1.0f; // whatever that means - wider for semibreves, etc.
-  direction m_direction;
+  float width = 0; // decided according to note type, and chord members.
+  // Examples:
+  //  -o-   -- one minim, crotchet, or [semi-*]quaver
+  //  -()-   -- one seimbreve
+  //  -o--
+  //    o   -- two notes on adjacent stave positions
+  //  -()--
+  //    ()  -- two seimbreves on adjacent stave positions
+
+  // Num lines above and below stave - for a single note, only
+  //  one of these will be non-zero, but for a chord, they could
+  //  both be non-zero.
+  int m_num_ledger_lines_above = 0;
+  int m_num_ledger_lines_below = 0;
 }; 
 
 struct note : public note_rest_base

@@ -2,6 +2,7 @@
 
 namespace juliet_musicxml
 {
+// Description string, not final output string.
 std::string to_string(key_sig ks)
 {
   int sharps = static_cast<int>(ks);
