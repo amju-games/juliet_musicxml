@@ -10,6 +10,17 @@ namespace juliet_musicxml
 {
 namespace internal
 {
+rest copy_note_members_to_rest(const rest& cr, const note& n)
+{
+  rest r(cr);
+  r.m_duration = n.m_duration;
+  r.m_duration_type = n.m_duration_type;
+  r.m_stave = n.m_stave;
+  r.m_voice = n.m_voice;
+  r.m_num_dots = n.m_num_dots;
+  return r;
+}
+
 class ElementHandler 
 {
 public:
@@ -246,15 +257,7 @@ public:
     {
         if (m_is_rest)
         {
-            // Dear god, this is awful, I must find a better way to handle 
-            //  'notes' that are really rests.
-            m_rest.m_duration = m_note.m_duration;
-            m_rest.m_duration_type = m_note.m_duration_type;
-            m_rest.m_stave = m_note.m_stave;
-            m_rest.m_voice = m_note.m_voice;
-            m_rest.m_num_dots = m_note.m_num_dots;
-            
-            data.m_events.emplace_back(std::make_unique<rest>(m_rest));
+            data.m_events.emplace_back(std::make_unique<rest>(copy_note_members_to_rest(m_rest, m_note)));
         }
         else
         {
