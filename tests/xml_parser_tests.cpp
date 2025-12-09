@@ -1,4 +1,3 @@
-#include <iostream>
 #include "catch.hpp"
 #include "xml_helper.h"
 #include "xml_parser.h"
@@ -81,9 +80,32 @@ TEST_CASE("Parse attribs: 4 flats key sig", "xml_parser internals")
 TEST_CASE("Parse attribs: num staves", "xml_parser internals")
 {
   using namespace juliet_musicxml;
-  const auto event = parse_event("<attributes><staves>2</staves></attributes>");
+  const auto event = parse_event("<attributes><staves>17</staves></attributes>");
   const auto* staves = dynamic_cast<stave_event*>(event.get());
-  REQUIRE(staves->m_stave_info.m_num_staves == 2);
+  REQUIRE(staves->m_stave_info.m_num_staves == 17);
+}
+
+TEST_CASE("Parse attribs: number of lines in staves: one stave with one line", "xml_parser internals")
+{
+  using namespace juliet_musicxml;
+  const auto event = parse_event(R"(
+    <attributes><staff-details><staff-lines>1</staff-lines></staff-details></attributes>
+  )");
+  const auto* staves = dynamic_cast<stave_event*>(event.get());
+  REQUIRE(staves->m_stave_info.m_num_staves == 1);
+  REQUIRE(staves->m_stave_info.m_num_stave_lines == 1);
+}
+
+TEST_CASE("Parse attribs: number of lines in staves: multiple staves with one line", "xml_parser internals")
+{
+  using namespace juliet_musicxml;
+  const auto event = parse_event(R"(
+    <attributes><staves>37</staves><staff-details><staff-lines>1</staff-lines></staff-details></attributes>
+  )");
+  const auto* staves = dynamic_cast<stave_event*>(event.get());
+  REQUIRE(staves->m_stave_info.m_num_staves == 37);
+  REQUIRE(staves->m_stave_info.m_num_stave_lines == 1);
+  // Presumbly, if >1 stave, every stave gets 1 line.
 }
 
 TEST_CASE("Parse attribs: divisions", "xml_parser internals")

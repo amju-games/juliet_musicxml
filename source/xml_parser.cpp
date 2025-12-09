@@ -130,6 +130,18 @@ public:
         if (get_named_value(m_child_name, xml::BEATS, textValue, m_time_sig.m_fraction.num)) {}
         else if (get_named_value(m_child_name, xml::BEAT_TYPE, textValue, m_time_sig.m_fraction.denom)) {}
         else if (get_named_value(m_child_name, xml::STAVES, textValue, m_staves.m_stave_info.m_num_staves)) {}
+        else if (m_child_name == xml::STAFF_LINES)
+        {
+          if (get_named_value(m_child_name, xml::STAFF_LINES, textValue, m_staves.m_stave_info.m_num_stave_lines))
+          {
+            if (m_staves.m_stave_info.m_num_staves == 0)
+            {
+              // If no other stave info found so far, give num staves a 
+              //  non-zero value so we will output the event on exit.
+              m_staves.m_stave_info.m_num_staves = 1; 
+           }
+          }
+        }
         else if (get_named_value(m_child_name, xml::DIVISIONS, textValue, m_divisions.m_num_divisions)) {}
         else if (m_child_name == xml::SIGN) 
         { 

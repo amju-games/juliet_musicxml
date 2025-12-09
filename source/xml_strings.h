@@ -32,6 +32,7 @@ static constexpr const char* NUMBER = "number";
 static constexpr const char* QUARTER = "quarter";
 static constexpr const char* REST = "rest";
 static constexpr const char* SIGN = "sign";
+static constexpr const char* STAFF_LINES = "staff-lines";
 static constexpr const char* STAFF = "staff";
 static constexpr const char* STAVES = "staves";
 static constexpr const char* STEP = "step";
