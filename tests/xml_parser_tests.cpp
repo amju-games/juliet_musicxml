@@ -83,7 +83,7 @@ TEST_CASE("Parse attribs: num staves", "xml_parser internals")
   using namespace juliet_musicxml;
   const auto event = parse_event("<attributes><staves>2</staves></attributes>");
   const auto* staves = dynamic_cast<stave_event*>(event.get());
-  REQUIRE(staves->m_num_staves == 2);
+  REQUIRE(staves->m_stave_info.m_num_staves == 2);
 }
 
 TEST_CASE("Parse attribs: divisions", "xml_parser internals")

@@ -3,6 +3,7 @@
 #include <unordered_map>
 #include "i_renderer.h"
 #include "render_output.h"
+#include "stave_info.h"
 
 namespace juliet_musicxml
 {
@@ -33,13 +34,17 @@ private:
   void add_description_to_output(const std::string& description);
   void set_clef_for_stave(int part_index, int stave_num, clef_sign cl);
   clef_sign get_clef_for_stave(int part_index, int stave_num) const;
-  void add_stave_info(int part_index, int num_staves, int num_stave_lines);
+  void add_stave_info(int part_index, const stave_info& s);
+  void render_staves();
 
 private:
   render_output m_output;
   float m_x_offset = 0;
   [[maybe_unused]]float m_y_offset = 0;
   std::unordered_map<int, clef_sign> m_clef_map; // store current clef for each stave
+
+  // stave info for each part
+  std::unordered_map<int, stave_info> m_stave_info_map; 
 
   // TODO
   // page_info m_page_info; // This is the const, user-defined params for the page.

@@ -249,10 +249,14 @@ void renderer::render_stave(const stave_event& s)
   // Ah nice, this is how we know about the staves for all the parts.
   // Or maybe we already got this info and stashed it in a horizontal?
 
-  add_stave_info(s.m_part_index, s.m_num_staves, s.m_num_stave_lines);
-  // TODO is this also where a part could be defined as guitar tab, say?
+  add_stave_info(s.m_part_index, s.m_stave_info);
+}
+
+void renderer::render_staves()
+{
   render_output_event primitives;
 
+  /*
   // Description
   std::stringstream ss;
   ss << "Part " << s.m_part_index << " num staves: " << s.m_num_staves << " num lines: " << s.m_num_stave_lines;
@@ -275,12 +279,13 @@ void renderer::render_stave(const stave_event& s)
     }
     //y += get_stave_spacing(...);
   }
-   
+  */
   add_output_event(primitives); 
 }
 
-void renderer::add_stave_info(int part_index, int num_staves, int num_stave_lines)
+void renderer::add_stave_info(int part_index, const stave_info& s)
 {
+  m_stave_info_map[part_index] = s;
 }
 
 std::string get_description_string_for_clef(clef_sign clef)

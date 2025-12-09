@@ -9,6 +9,7 @@
 #include "fraction.h"
 #include "key_sig.h"
 #include "pitch.h"
+#include "stave_info.h"
 
 namespace juliet_musicxml
 {
@@ -109,8 +110,8 @@ struct key_sig_event : public attribute_event
 //  directly write output for it.
 struct stave_event : public attribute_event
 {
-  int m_num_staves = 1;
-  int m_num_stave_lines = 5;
+  stave_info m_stave_info;
+
   float get_width() const override { return 0; }
   std::string get_description() const override;
   void render(i_renderer&) const override;

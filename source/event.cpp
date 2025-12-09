@@ -240,7 +240,9 @@ float clef_event::get_width() const
 std::string stave_event::get_description() const
 {
   std::stringstream ss;
-  ss << "STAVES for part " << m_part_index << ": num staves: " << m_num_staves << " lines: " << m_num_stave_lines;
+  ss << "STAVES for part " << m_part_index 
+     << ": num staves: " << m_stave_info.m_num_staves 
+     << " lines: " << m_stave_info.m_num_stave_lines;
   return ss.str();
 }
 

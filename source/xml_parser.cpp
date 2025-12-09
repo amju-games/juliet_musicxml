@@ -111,7 +111,7 @@ public:
     { 
         m_divisions.m_num_divisions = 0;
         m_time_sig.m_fraction = fraction(0, 0); // 0/0 means not set
-        m_staves.m_num_staves = 0;
+        m_staves.m_stave_info.m_num_staves = 0;
     }
 
     void handleChildEnter(const XMLElement& element) override 
@@ -129,7 +129,7 @@ public:
         const std::string textValue = text.Value();
         if (get_named_value(m_child_name, xml::BEATS, textValue, m_time_sig.m_fraction.num)) {}
         else if (get_named_value(m_child_name, xml::BEAT_TYPE, textValue, m_time_sig.m_fraction.denom)) {}
-        else if (get_named_value(m_child_name, xml::STAVES, textValue, m_staves.m_num_staves)) {}
+        else if (get_named_value(m_child_name, xml::STAVES, textValue, m_staves.m_stave_info.m_num_staves)) {}
         else if (get_named_value(m_child_name, xml::DIVISIONS, textValue, m_divisions.m_num_divisions)) {}
         else if (m_child_name == xml::SIGN) 
         { 
@@ -169,7 +169,7 @@ public:
         //  order it needs (we need to know about staves first). 
         // Also for how the music looks, (we want key sig before time sig).
 
-        if (m_staves.m_num_staves != 0)
+        if (m_staves.m_stave_info.m_num_staves != 0)
         {
           data.m_events.emplace_back(std::make_unique<stave_event>(m_staves));
         }
