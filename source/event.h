@@ -65,6 +65,7 @@ struct attribute_event : public event
   attribute_event() { m_is_attribute = true; }
 };
 
+// Superclass for composites
 struct composite_event : public event
 {
   void render(i_renderer&) const override;
@@ -169,7 +170,8 @@ struct stem
   {
     STEM_NONE, // for semibreves, for example
     STEM_UP,
-    STEM_DOWN
+    STEM_DOWN,
+    STEM_DOUBLE
   };
 
   std::string to_string() const;

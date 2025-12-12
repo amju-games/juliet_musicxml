@@ -179,12 +179,36 @@ TEST_CASE("Parse note: staff", "xml_parser_internals")
   REQUIRE(n->m_stave == 41);
 }
 
-TEST_CASE("Parse note: stem dir", "xml_parser_internals")
+TEST_CASE("Parse note: stem dir up", "xml_parser_internals")
 {
   using namespace juliet_musicxml;
   const auto event = parse_event("<note><stem>up</stem></note>");
   const auto* n = dynamic_cast<note*>(event.get());
   REQUIRE(n->m_stem.m_direction == stem::direction::STEM_UP);
+}
+
+TEST_CASE("Parse note: stem dir default", "xml_parser_internals")
+{
+  using namespace juliet_musicxml;
+  const auto event = parse_event("<note></note>");
+  const auto* n = dynamic_cast<note*>(event.get());
+  REQUIRE(n->m_stem.m_direction == stem::direction::STEM_NONE);
+}
+
+TEST_CASE("Parse note: stem dir down", "xml_parser_internals")
+{
+  using namespace juliet_musicxml;
+  const auto event = parse_event("<note><stem>down</stem></note>");
+  const auto* n = dynamic_cast<note*>(event.get());
+  REQUIRE(n->m_stem.m_direction == stem::direction::STEM_DOWN);
+}
+
+TEST_CASE("Parse note: stem dir double", "xml_parser_internals")
+{
+  using namespace juliet_musicxml;
+  const auto event = parse_event("<note><stem>double</stem></note>");
+  const auto* n = dynamic_cast<note*>(event.get());
+  REQUIRE(n->m_stem.m_direction == stem::direction::STEM_DOUBLE);
 }
 
 TEST_CASE("Parse note: voice", "xml_parser_internals")

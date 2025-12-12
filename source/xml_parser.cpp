@@ -56,6 +56,7 @@ stem::direction stem_lookup(const std::string str)
 {
   if (str == xml::UP) return stem::direction::STEM_UP;
   if (str == xml::DOWN) return stem::direction::STEM_DOWN;
+  if (str == xml::DOUBLE) return stem::direction::STEM_DOUBLE;
   return stem::direction::STEM_NONE;
 }
 }

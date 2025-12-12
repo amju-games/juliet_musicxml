@@ -19,6 +19,7 @@ static constexpr const char* CHORD = "chord";
 static constexpr const char* CLEF = "clef";
 static constexpr const char* CLEF_OCTAVE_CHANGE = "clef-octave-change";
 static constexpr const char* DIVISIONS = "divisions";
+static constexpr const char* DOUBLE = "double";
 static constexpr const char* DOWN = "down";
 static constexpr const char* EIGHTH = "eighth";
 static constexpr const char* FIFTHS = "fifths";

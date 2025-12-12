@@ -152,9 +152,10 @@ std::string divisions::get_description() const
 
 std::string stem::to_string() const
 {
-  return m_direction == direction::STEM_UP ? "U" : 
-    (m_direction == direction::STEM_DOWN ? "D" : 
-    "-");
+  return m_direction == direction::STEM_UP ? "up" : 
+    (m_direction == direction::STEM_DOWN ? "down" : 
+    (m_direction == direction::STEM_DOUBLE ? "down" : 
+    "-"));
 }
 
 std::string time_sig_event::get_description() const
