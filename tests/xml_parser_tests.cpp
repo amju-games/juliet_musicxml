@@ -55,17 +55,22 @@ TEST_CASE("Parse two-bar xml file example", "xml_parser")
   REQUIRE(score.m_parts.size() == 1); // one part
   const auto& bars = score.m_parts.begin()->m_bars;
   REQUIRE(bars.size() == 2); // expect two bars
-  const auto& bar = bars[0];
-  const auto& event_1 = bar->m_events[0];
+  const auto& bar_1 = bars[0];
+  REQUIRE(bar_1->m_bar_number == 1); // 1-based bar number
+  const auto& event_1 = bar_1->m_events[0];
   const auto* divs = dynamic_cast<divisions*>(event_1.get());
   REQUIRE(divs->m_num_divisions == 1);
-  const auto& event_2 = bar->m_events[1];
+  const auto& event_2 = bar_1->m_events[1];
   const auto* clefs = dynamic_cast<clef_event*>(event_2.get());
   REQUIRE(clefs);
   REQUIRE(clefs->m_clef_map.size() == 1); // one clef in XML file
 
   // TODO Key sig
 //  REQUIRE(attrs->m_key_sig == key_sig::KEYSIG_1_SHARP);
+
+  // Check bar numbers
+  const auto& bar_2 = bars[1];
+  REQUIRE(bar_2->m_bar_number == 2);
 }
 
 TEST_CASE("Parse attribs: 4 flats key sig", "xml_parser internals")
