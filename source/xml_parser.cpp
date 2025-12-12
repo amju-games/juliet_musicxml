@@ -432,16 +432,9 @@ bar parse_bar(XMLNode* bar_node)
   return std::move(visitor.m_bar);
 }   
 
-expected_score parse_xml_doc(XMLDocument& doc)
+expected_score parse_parts(XMLElement* root)
 {
-  XMLElement* root = doc.RootElement();
-  if (root == nullptr)
-  {
-    return tl::unexpected("XML Document has no root node!");
-  }
-
   score the_score;
-          
   // Iterate through all <part> elements.
   for (XMLElement* part_element = root->FirstChildElement(xml::PART);
        part_element != nullptr;
@@ -468,7 +461,18 @@ expected_score parse_xml_doc(XMLDocument& doc)
       the_score.add_bar_for_part(part_index, b); 
     }
   }
-  return std::move(the_score);
+  return the_score;
+}
+
+expected_score parse_xml_doc(XMLDocument& doc)
+{
+  XMLElement* root = doc.RootElement();
+  if (root == nullptr)
+  {
+    return tl::unexpected("XML Document has no root node!");
+  }
+
+  return parse_parts(root);
 }
 } // namespace internal
 
