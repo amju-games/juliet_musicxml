@@ -8,6 +8,7 @@
 #include "expected.hpp" // TODO <expected>
 #include "fraction.h"
 #include "key_sig.h"
+#include "part_info.h"
 #include "pitch.h"
 #include "stave_info.h"
 
@@ -124,17 +125,7 @@ struct stave_event : public attribute_event
 //  in MusicXML?)
 struct part_event : public event
 {
-  // part_index lives in every event already!
-  //int m_part_index; // the index in all events which belong to this part.
-  std::string m_part_id; // not sure we need this
-  std::string m_name; // Text we render at the left edge of the first line
-    // to identify this part.
-    // NB Perhaps should be a more specific string type.
-  std::string m_short_name; // For lines after line 1
-
-  // Scale for all glyphs in the part. (Perhaps also height of stave line
-  //  scales with this too. But width of stave wouldn't be different.)
-  float m_scale = 1.0f; 
+  part_info m_part_info;
 
   float get_width() const override;
   std::string get_description() const override;
