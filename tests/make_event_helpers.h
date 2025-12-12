@@ -1,4 +1,5 @@
 #include "event.h"
+#include "note.h"
 
 // Simplify creating notes for tests
 std::unique_ptr<juliet_musicxml::note> make_note(std::string_view step, int time, int voice);

@@ -4,13 +4,14 @@
 #include "chord.h"
 #include "event.h"
 #include "glyph_strings.h"
+#include "note.h"
 #include "primitive_coords.h"
 #include "renderer.h"
 #include "vertical.h"
 
 namespace juliet_musicxml
 {
-namespace 
+namespace internal
 {
 std::string get_rest_glyph_name(const rest& r)
 {
@@ -188,7 +189,7 @@ void add_note_head_to_primitives(
   const note& n, render_output_event& primitives, clef_sign clef)
 {
   float x = event_x(n); // Adjust if required
-  float y = calc_note_y_pos(n, clef);
+  float y = n.calc_note_y_pos(clef);
 
   primitives.emplace_back(glyph_output{get_note_head_glyph_name(n), {x, y}});  
   // Dots! Articulations!
@@ -221,13 +222,16 @@ void add_stem_for_note(
   }
   
   float x = event_x(n); // Adjust if required
-  float y = calc_note_y_pos(n, clef);
+  float y = n.calc_note_y_pos(clef);
   float w = get_stem_width();
   float h = get_stem_height(); // phew some heavy lifting in here
    
   // Up or down? -- up = x offset
   switch (n.m_stem.m_direction)
   {
+  case stem::direction::STEM_DOUBLE:
+    // Unsupported
+    break;
   case stem::direction::STEM_NONE:
     // Hmm I guess we don't need the above duration test?
     // Maybe this enum value has other uses..?
@@ -242,7 +246,7 @@ void add_stem_for_note(
 
   primitives.emplace_back(make_quad(x, y, x + w, y + h));
 } 
-} // namespace
+} // namespace internal
 
 void renderer::render_stave(const stave_event& s)
 {
@@ -305,12 +309,20 @@ std::string get_description_string_for_clef(clef_sign clef)
   return clef_str;
 }
 
+void renderer::note_pre_render(const note& n, clef_sign clef) 
+{
+  // Should this live in note? Yes, for testability.
+  n.pre_render_ledger_lines(clef);
+}
+
 void renderer::render_note(const note& n) 
 {
   render_output_event primitives;
 
   // Get clef, required for note y-position
   auto clef = get_clef_for_stave(n.m_part_index, n.m_stave);
+
+  note_pre_render(n, clef);
 
   // Output comment, including clef
   auto clef_str = get_description_string_for_clef(clef);
@@ -319,18 +331,18 @@ void renderer::render_note(const note& n)
   // TODO needs y origin value. Use top line of stave 0. If a note is on
   //  another stave, add the appropriate spacing etc. This will work
   //  with chords across staves.
-  add_note_head_to_primitives(n, primitives, clef);
+  internal::add_note_head_to_primitives(n, primitives, clef);
 
   // TODO Stems, ledger lines... accidentals here too, positions
   //  could change in a chord.
 
   // TODO Use same y origin.
-  add_stem_for_note(n, primitives, clef);
+  internal::add_stem_for_note(n, primitives, clef);
 
   // TODO Same y origin. NB if space between staves is always an integer,
   //  we can use ints for ledger line positions which might help simplify
   //  chord ledger lines?
-  add_ledger_lines_for_note(n, primitives, clef);
+  internal::add_ledger_lines_for_note(n, primitives, clef);
 
   add_output_event(primitives); 
 }
@@ -349,7 +361,7 @@ void renderer::render_rest(const rest& r)
   // TODO Adjust y coord so the rest sits in the vertical centre of the stave,
   //  or in a custom y-pos if that was specified.
 
-  primitives.emplace_back(glyph_output{get_rest_glyph_name(r), pos});  
+  primitives.emplace_back(glyph_output{internal::get_rest_glyph_name(r), pos});  
   //add_dots(r, pos, primitives); // Add dot glyphs as necessary. Same as for notes.
   add_output_event(primitives); 
 }
@@ -395,7 +407,11 @@ void renderer::render_chord(const chord& c)
     assert(n);
 
     auto clef = get_clef_for_stave(n->m_part_index, n->m_stave);
-    add_note_head_to_primitives(*n, primitives, clef);
+
+    // Calc ledger lines, stems, etc
+    note_pre_render(*n, clef);
+
+    internal::add_note_head_to_primitives(*n, primitives, clef);
   }
 
   // TODO Stems, ledger lines... accidentals here too, positions
@@ -406,12 +422,12 @@ void renderer::render_chord(const chord& c)
 
 void renderer::set_clef_for_stave(int part_index, int stave_num, clef_sign cl)
 {
-  m_clef_map[munge(part_index, stave_num)] = cl;
+  m_clef_map[internal::munge(part_index, stave_num)] = cl;
 }
 
 clef_sign renderer::get_clef_for_stave(int part_index, int stave_num) const
 {
-  int key = munge(part_index, stave_num); 
+  int key = internal::munge(part_index, stave_num); 
   if (!m_clef_map.contains(key))
   {
     return clef_sign::CLEF_TREBLE; // TODO Check this default value is valid
@@ -437,11 +453,11 @@ void renderer::render_clef(const clef_event& c)
 
     // TODO If a cue clef, scale the glyph 
 
-    float x = event_x(c);
+    float x = internal::event_x(c);
     float y = get_stave_top(c.m_part_index, stave_num); 
     // TODO y offset? Depends on clef sign??
 
-    primitives.emplace_back(glyph_output{get_glyph_name_for_clef(sign), {x, y}});
+    primitives.emplace_back(glyph_output{internal::get_glyph_name_for_clef(sign), {x, y}});
 
     // Store clef info for later use.
     set_clef_for_stave(c.m_part_index, stave_num, sign); 
@@ -459,20 +475,20 @@ void renderer::render_time_sig(const time_sig_event& t)
   primitives.emplace_back(description_output(t.get_description()));
 
   // For each stave in this part
-  for (int i = 0; i < get_num_staves(t.m_part_index); i++)
+  for (int i = 0; i < internal::get_num_staves(t.m_part_index); i++)
   { 
     // Two number glyphs, vertically aligned
    
-    float x = event_x(t);
+    float x = internal::event_x(t);
     float y = get_stave_top(t.m_part_index, i); // TODO y-offset for glyph anchor?  
 
     // Top number
     primitives.emplace_back(glyph_output{ 
-      get_glyph_name_for_int(t.m_fraction.num), {x, y}});
+      internal::get_glyph_name_for_int(t.m_fraction.num), {x, y}});
    
     // Bottom number -- add 2 to y coord (unit is distance between staves).
     primitives.emplace_back(glyph_output{ 
-      get_glyph_name_for_int(t.m_fraction.denom), {x, y + 2.0f}});
+      internal::get_glyph_name_for_int(t.m_fraction.denom), {x, y + 2.0f}});
   }
   add_output_event(primitives); 
 }
@@ -489,9 +505,9 @@ void renderer::render_key_sig(const key_sig_event& k)
   primitives.emplace_back(description_output(k.get_description()));
 
   // For each stave in this part
-  for (int i = 0; i < get_num_staves(k.m_part_index); i++)
+  for (int i = 0; i < internal::get_num_staves(k.m_part_index); i++)
   { 
-    float x = event_x(k);
+    float x = internal::event_x(k);
     float y = get_stave_top(k.m_part_index, i); 
 
     // Get the prevailing clef for this stave
@@ -500,7 +516,7 @@ void renderer::render_key_sig(const key_sig_event& k)
     // TODO we should probably check that optional. If it fails,
     //  we probably don't know the clef for this stave. In that
     //  case, let's bail out and not try to render any key sig.
-    auto clef_glyph = get_glyph_name_for_key_on_clef(k.m_key_sig, clef);
+    auto clef_glyph = internal::get_glyph_name_for_key_on_clef(k.m_key_sig, clef);
     if (!clef_glyph)
     {
       return;
@@ -512,6 +528,8 @@ void renderer::render_key_sig(const key_sig_event& k)
 
 void renderer::render_bar_line(const bar_line_event& bl) 
 {
+  using namespace internal;
+
   // For a simple bar line, just add a line(i.e. quad) primitive.
   render_output_event primitives;
   // Make a line from top of stave 0 to bottom of the last stave for

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "note.h"
 #include "vertical.h"
 
 namespace juliet_musicxml

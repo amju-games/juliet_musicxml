@@ -37,6 +37,11 @@ private:
   void add_stave_info(int part_index, const stave_info& s);
   void render_staves();
 
+  // Called prior to rendering: the note could be part of a chord, and 
+  //  so not rendered as a separate note. We want to calculate ledger lines,
+  //  stem, etc. for both chords and single notes.
+  void note_pre_render(const note& n, clef_sign clef);
+
 private:
   // Output sequence to which we add primitives for each event
   render_output m_output;

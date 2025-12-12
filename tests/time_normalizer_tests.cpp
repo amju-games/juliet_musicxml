@@ -1,5 +1,6 @@
 #include <iostream>
 #include "catch.hpp"
+#include "note.h"
 #include "print_helper.h"
 #include "tinyxml2.h"
 #include "time_normalizer.h"

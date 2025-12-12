@@ -1,6 +1,6 @@
 #include "catch.hpp"
-
 #include "event.h"
+#include "note.h"
 #include "primitive_coords.h"
 
 namespace juliet_musicxml
@@ -11,6 +11,11 @@ note make_note(char step, int octave)
   n.m_pitch.m_step = step;
   n.m_pitch.m_octave = octave;
   return n;
+}
+
+float calc_note_y_pos(const note& n, clef_sign c)
+{
+  return n.calc_note_y_pos(c);
 }
 }
 

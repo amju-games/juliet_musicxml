@@ -1,4 +1,5 @@
 #include "catch.hpp"
+#include "note.h"
 #include "xml_helper.h"
 #include "xml_parser.h"
 

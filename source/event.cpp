@@ -19,59 +19,6 @@ float composite_event::get_width() const
   return w;
 }
 
-void note::normalize_time(int& ticks, int& divs, fraction& norm_time)
-{
-  const fraction event_duration(m_duration, divs);
-  fraction start_time;
-
-  // Set normalized start time - different if this is a chord note.
-  if (m_is_chord) 
-  {   
-    // Chord notes have the start time of the previous note. Given that 
-    //  every note in a chord has the same duration, that's the same
-    //  as subtracting this note's duration from the cumulative 
-    //  normalized time.  ...riiight?
-    start_time = norm_time - event_duration;
-  }   
-  else 
-  {   
-    // Non-chord notes start at the current time pointer.
-    start_time = norm_time;
-  
-    // Only non-chord notes advance the time.
-    ticks += m_duration;
-    norm_time += event_duration;
-  }
-
-  m_normalized_start_time = start_time;
-  m_normalized_duration = event_duration;
-}
-
-std::string note::get_description() const
-{
-  std::stringstream ss; 
-  ss << "Note: P" << m_part_index << " "
-     << m_pitch.to_string() 
-     << (m_is_chord ? " ch" : "   ") 
-     << "\tDur: " << m_normalized_duration 
-     << " Dur type: " << m_duration_type
-     << " Start at: " << m_normalized_start_time 
-     << " Stave: " << m_stave
-     << " Voice: " << m_voice
-     << " Stem: " << m_stem.to_string();
-  return ss.str();
-}
-
-float note::get_width() const
-{
-  return 1.f;
-}
-
-void note::render(i_renderer& r) const 
-{
-  r.render_note(*this);
-}
-
 void rest::normalize_time(int& ticks, int& divs, fraction& time)
 {
   const fraction event_duration(m_duration, divs);

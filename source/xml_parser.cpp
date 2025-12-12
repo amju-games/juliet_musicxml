@@ -1,5 +1,6 @@
 #include <iostream>
 #include <sstream>
+#include "note.h"
 #include "tinyxml2.h"
 #include "xml_parser.h"
 #include "xml_strings.h"
@@ -20,7 +21,6 @@ rest copy_note_members_to_rest(const rest& cr, const note& n)
   r.m_num_dots = n.m_num_dots;
   return r;
 }
-
 
 // Helper function: if element name matches the one we are looking for,
 //  convert value string to int and return true, signifying that we 
