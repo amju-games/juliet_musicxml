@@ -42,7 +42,7 @@ TEST_CASE("P-01 Basic Two-Part Alignment", "[interleaving]")
   
   s.add_new_part("P2", p2_bars);
 
-  event_vec verticals = interleaver::interleave_score_parts(s);
+  event_vec verticals = interleaver::interleave_and_create_verticals(s);
 
   REQUIRE(verticals.size() == 1);
   check_event_is_vertical(verticals[0], 2, 1); // expect two note children, not a chord; time 1
@@ -76,7 +76,7 @@ TEST_CASE("P-02 Sequential Bar Interleaving", "[interleaving]")
   
   s.add_new_part("P2", p2_bars);
 
-  event_vec verticals = interleaver::interleave_score_parts(s);
+  event_vec verticals = interleaver::interleave_and_create_verticals(s);
 
   REQUIRE(verticals.size() == 3);
   check_event_is_vertical(verticals[0], 1, 1); // Expect 1 note, time 1, in 1st part
@@ -112,7 +112,7 @@ TEST_CASE("P-03 Misaligned Bar Starts", "[interleaving]")
   
   s.add_new_part("P2", p2_bars);
 
-  event_vec verticals = interleaver::interleave_score_parts(s);
+  event_vec verticals = interleaver::interleave_and_create_verticals(s);
 
   REQUIRE(verticals.size() == 3);
   check_event_is_vertical(verticals[0], 1, 3); // a, time 3
@@ -144,7 +144,7 @@ TEST_CASE("P-04 Vertical Content Isolation", "[interleaving][chords]")
   
   s.add_new_part("P2", p2_bars);
 
-  event_vec verticals = interleaver::interleave_score_parts(s);
+  event_vec verticals = interleaver::interleave_and_create_verticals(s);
 
   REQUIRE(verticals.size() == 1);
   check_event_is_vertical(verticals[0], 2, 1); // 2 note children; not a chord.

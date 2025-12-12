@@ -1,39 +1,40 @@
 #include <iostream>
 #include "catch.hpp"
-
-// TODO!
-//#include "../juliet_musicxml.hpp" // as this is an integration test
-
 #include "interleaver.h"
 #include "print_helper.h"
-#include "text_renderer.h"
+#include "printer.h"
+#include "renderer.h"
 #include "time_normalizer.h"
 #include "verticalizer.h"
 #include "xml_parser.h"
 
+// These tests test the end-to-end behaviour but not the 
+//  library file structure (single header)
+//#include "../juliet_musicxml.hpp" 
+
 bool parse_and_print(const std::string& filename);
 
-TEST_CASE("Show events in two bar example", "time_normalizer")
+// [.] disables a test
+
+TEST_CASE("Simple example", "integration_test")
 {
-  REQUIRE(parse_and_print("xml/two_bars.xml"));
+  REQUIRE(parse_and_print("xml/simple.xml"));
 }
 
-/*
-TEST_CASE("Show events in chopin example", "time_normalizer")
+TEST_CASE("Chopin example", "integration_test")
 {
   REQUIRE(parse_and_print("xml/chopin.xml"));
 }
 
-TEST_CASE("Show events in two bar example", "time_normalizer")
+TEST_CASE("Two bar example", "[.]integration_test")
 {
   REQUIRE(parse_and_print("xml/two_bars.xml"));
 }
 
-TEST_CASE("Show events in Beethoven example", "time_normalizer")
+TEST_CASE("Beethoven example", "[.]integration_test")
 {
   REQUIRE(parse_and_print("xml/beethoven.xml"));
 }
-*/
 
 bool parse_and_print(const std::string& filename)
 {
@@ -46,19 +47,18 @@ bool parse_and_print(const std::string& filename)
   time_normalizer tn; 
   tn.normalize_times(s);
 
-  // TODO split up tasks
-  event_vec verticals = interleaver::interleave_score_parts(s);
+  event_vec verticals = interleaver::interleave_and_create_verticals(s);
   std::cout << filename << ":\n";
-  print_events(verticals);
 
-  // TODO Horizontalizer
-
-  text_renderer r(std::make_unique<final_text_render_output>());
+  // This should be a juliet_musicxml function, not here.
+  renderer r;
   for (const auto& e : verticals)
   {
     e->render(r);
   }
-  std::cout << r.output().to_string() << std::endl;
+
+  printer p;
+  std::cout << p.to_string(r.output()) << std::endl;
   
   return true;
 }

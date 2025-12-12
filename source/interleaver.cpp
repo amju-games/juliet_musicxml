@@ -1,9 +1,9 @@
 #include "interleaver.h"
-#include "verticalizer.h" // or keep separate?
+#include "verticalizer.h"
 
 namespace juliet_musicxml
 {
-event_vec interleaver::interleave_score_parts(juliet_musicxml::score& s)
+event_vec interleaver::interleave_and_create_verticals(juliet_musicxml::score& s)
 {
   // 1. FLATTEN: Create one giant list for all raw events from all parts.
   event_vec all_raw_events;
