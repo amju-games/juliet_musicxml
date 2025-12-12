@@ -38,10 +38,17 @@ private:
   void render_staves();
 
 private:
+  // Output sequence to which we add primitives for each event
   render_output m_output;
+
+  // Number of parts found in the events we render
+  int m_num_parts = 1;
+
   float m_x_offset = 0;
   [[maybe_unused]]float m_y_offset = 0;
-  std::unordered_map<int, clef_sign> m_clef_map; // store current clef for each stave
+
+  // store current clef for each stave/part pair 
+  std::unordered_map<int, clef_sign> m_clef_map; 
 
   // stave info for each part
   std::unordered_map<int, stave_info> m_stave_info_map; 

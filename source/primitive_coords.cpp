@@ -1,5 +1,4 @@
 #include <array>
-#include <iostream>
 #include "primitive_coords.h"
 
 namespace juliet_musicxml
@@ -125,7 +124,6 @@ g -> -3
   }
   float octave = static_cast<float>(4 - n.m_pitch.m_octave) * 3.5f;
   y += distance_from_top_stave + octave;
-std::cout << "Note: " << n.m_pitch.m_step <<  n.m_pitch.m_octave << " dist: " << distance_from_top_stave << " oct: " << octave << " y: " << y << std::endl;
 
   return y;
 }

@@ -28,6 +28,7 @@ using coord = std::pair<x_coord, y_coord>;
 //  e.g. "filled-note-head", which is later mapped to a character code.
 // The coord (2nd element) defines the position of the anchor point 
 //  for the given glyph.
+// TODO The string should be a SMuFL glyph code as that's the standard.
 using glyph_output = std::tuple<std::string, coord>;
   
 // Perhaps we will also use this, to scale glyph size:
@@ -36,6 +37,13 @@ using glyph_output = std::tuple<std::string, coord>;
 // A curve (catmull-rom spline) defined by 4 or more coords:
 using curve_output = std::vector<coord>;
 
+// Hmm, maybe we don't want quads. We want line segments, with a
+//  type, so we can look up the width when we also convert glyph enums
+//  to actual character codes. That way, we don't hard code line
+//  thicknesses into the renderer.
+//using lineseg_output = std::tuple<line_type, coord, coord>;
+
+// Maybe we don't need quads.
 // A filled quadrilateral, defined by 4 corner coords.
 // Winding order is CCW.
 using quad_output = std::array<coord, 4>;
