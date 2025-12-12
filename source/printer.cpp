@@ -101,7 +101,7 @@ std::string to_string(const render_output& r)
   std::string result;
   for (const auto& e : r)
   {
-    result += to_string(e); // + "\n"; // TODO Configurable
+    result += to_string(e);
   }
   return result;
 }

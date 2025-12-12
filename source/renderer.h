@@ -42,7 +42,7 @@ private:
   render_output m_output;
 
   // Number of parts found in the events we render
-  int m_num_parts = 1;
+  [[maybe_unused]]int m_num_parts = 1;
 
   float m_x_offset = 0;
   [[maybe_unused]]float m_y_offset = 0;
